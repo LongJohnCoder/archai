@@ -1,12 +1,12 @@
 from typing import Optional
 
 import torch
-from FastAutoAugment import cifar10_models
+from archai import cifar10_models
 
-from FastAutoAugment.common.trainer import Trainer
-from FastAutoAugment.common.config import Config
-from FastAutoAugment.common.common import get_logger, common_init
-from FastAutoAugment.common import data
+from archai.common.trainer import Trainer
+from archai.common.config import Config
+from archai.common.common import get_logger, common_init
+from archai.common import data
 
 def train_test(conf_eval:Config):
     logger = get_logger()

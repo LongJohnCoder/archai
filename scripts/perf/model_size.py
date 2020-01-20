@@ -1,10 +1,10 @@
-from FastAutoAugment.nas.model_desc import ModelDesc
-from FastAutoAugment.common.common import common_init
-from FastAutoAugment.nas.model import Model
-from FastAutoAugment.petridish.petridish_micro_builder import PetridishMicroBuilder
-from FastAutoAugment.nas.nas_utils import create_macro_desc
+from archai.nas.model_desc import ModelDesc
+from archai.common.common import common_init
+from archai.nas.model import Model
+from archai.petridish.petridish_micro_builder import PetridishMicroBuilder
+from archai.nas.nas_utils import create_macro_desc
 
-from FastAutoAugment.common.model_summary import summary
+from archai.common.model_summary import summary
 
 conf = common_init(config_filepath='confs/petridish_cifar.yaml',
                     param_args=['--common.experiment_name', 'petridish_run2_seed42_eval'])

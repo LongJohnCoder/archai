@@ -1,4 +1,4 @@
-from FastAutoAugment.common import utils
+from archai.common import utils
 
 class A:
     def __init__(self):

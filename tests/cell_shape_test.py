@@ -1,8 +1,8 @@
 # import torch
 
-# from FastAutoAugment.common.common import common_init
-# from FastAutoAugment.darts.darts_micro_builder import DartsMicroBuilder
-# from FastAutoAugment.nas.nas_utils import create_model
+# from archai.common.common import common_init
+# from archai.darts.darts_micro_builder import DartsMicroBuilder
+# from archai.nas.nas_utils import create_model
 
 # def test_cell_shape():
 #     conf = common_init(config_filepath=None,

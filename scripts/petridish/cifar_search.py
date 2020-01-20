@@ -1,7 +1,7 @@
-from FastAutoAugment.nas.arch_trainer import ArchTrainer
-from FastAutoAugment.common.common import common_init
-from FastAutoAugment.nas import search
-from FastAutoAugment.petridish.petridish_micro_builder import PetridishMicroBuilder
+from archai.nas.arch_trainer import ArchTrainer
+from archai.common.common import common_init
+from archai.nas import search
+from archai.petridish.petridish_micro_builder import PetridishMicroBuilder
 
 
 if __name__ == '__main__':

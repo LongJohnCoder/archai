@@ -1,7 +1,7 @@
-from FastAutoAugment.darts.bilevel_arch_trainer import BilevelArchTrainer
-from FastAutoAugment.common.common import common_init
-from FastAutoAugment.nas import search
-from FastAutoAugment.darts.darts_micro_builder import DartsMicroBuilder
+from archai.darts.bilevel_arch_trainer import BilevelArchTrainer
+from archai.common.common import common_init
+from archai.nas import search
+from archai.darts.darts_micro_builder import DartsMicroBuilder
 
 
 if __name__ == '__main__':

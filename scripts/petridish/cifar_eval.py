@@ -1,6 +1,6 @@
-from FastAutoAugment.common.common import common_init
-from FastAutoAugment.nas.evaluate import eval_arch
-from FastAutoAugment.petridish.petridish_micro_builder import PetridishMicroBuilder
+from archai.common.common import common_init
+from archai.nas.evaluate import eval_arch
+from archai.petridish.petridish_micro_builder import PetridishMicroBuilder
 
 if __name__ == '__main__':
     conf = common_init(config_filepath='confs/petridish_cifar.yaml',

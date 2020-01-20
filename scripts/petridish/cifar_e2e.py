@@ -4,8 +4,8 @@ import os
 from pathlib import Path
 import shutil
 
-from FastAutoAugment.common.common import common_init, get_conf_common
-from FastAutoAugment.common import utils
+from archai.common.common import common_init, get_conf_common
+from archai.common import utils
 
 def main():
     # accept search and eval scripts to run

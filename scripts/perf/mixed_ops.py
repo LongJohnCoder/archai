@@ -1,5 +1,5 @@
-from FastAutoAugment.darts.mixed_op import MixedOp
-from FastAutoAugment.common import utils, timing
+from archai.darts.mixed_op import MixedOp
+from archai.common import utils, timing
 
 import torch
 import torch.backends.cudnn as cudnn

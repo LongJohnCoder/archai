@@ -1,6 +1,6 @@
-from FastAutoAugment.darts.darts_micro_builder import DartsMicroBuilder
-from FastAutoAugment.common.common import common_init
-from FastAutoAugment.nas.evaluate import eval_arch
+from archai.darts.darts_micro_builder import DartsMicroBuilder
+from archai.common.common import common_init
+from archai.nas.evaluate import eval_arch
 
 if __name__ == '__main__':
     conf = common_init(config_filepath='confs/darts_cifar.yaml',

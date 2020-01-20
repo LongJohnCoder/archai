@@ -1,7 +1,7 @@
 import json
 import os
-from FastAutoAugment.common.common import get_logger, common_init, expdir_abspath
-from FastAutoAugment.data_aug.train import train_and_eval
+from archai.common.common import get_logger, common_init, expdir_abspath
+from archai.data_aug.train import train_and_eval
 
 
 if __name__ == '__main__':

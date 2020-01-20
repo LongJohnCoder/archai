@@ -2,11 +2,11 @@ from typing import Optional
 
 import torch
 
-from FastAutoAugment.common.trainer import Trainer
-from FastAutoAugment.common.check_point import CheckPoint
-from FastAutoAugment.common.config import Config
-from FastAutoAugment.common.common import get_logger, common_init
-from FastAutoAugment.common import data
+from archai.common.trainer import Trainer
+from archai.common.check_point import CheckPoint
+from archai.common.config import Config
+from archai.common.common import get_logger, common_init
+from archai.common import data
 from dawn_net import DawnNet
 from basic_net import BasicNet
 

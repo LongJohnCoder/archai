@@ -22,7 +22,7 @@ from collections import defaultdict
 import pdb
 import random
 
-from FastAutoAugment.common.config import Config
+from archai.common.config import Config
 
 
 def launch_experiment(ws, conf_aml, conf_cluster, conf_docker, conf_experiment):
@@ -79,11 +79,11 @@ def launch_experiment(ws, conf_aml, conf_cluster, conf_docker, conf_experiment):
     # Note that experiment names have to be
     # <36 alphanumeric characters
     exp_name = conf_experiment['experiment_name']
-    experiment = Experiment(ws, name=exp_name)    
+    experiment = Experiment(ws, name=exp_name)
 
     # TODO: Make config
     for i in tqdm(range(200)):
-        log_dir = exp_name + f'_{i}'    
+        log_dir = exp_name + f'_{i}'
         script_params = {'--nas.eval.loader.dataset.dataroot': input_ds.path('/').as_mount(),
                          '--common.logdir': output_ds.path('/{}'.format(log_dir)).as_mount(),
                         }

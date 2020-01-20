@@ -22,7 +22,7 @@ from collections import defaultdict
 import pdb
 import random
 
-from FastAutoAugment.common.config import Config
+from archai.common.config import Config
 
 
 def launch_experiment(ws, conf_aml, conf_cluster, conf_docker, conf_experiment):

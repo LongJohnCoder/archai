@@ -1,6 +1,6 @@
-from FastAutoAugment.common.common import common_init
-from FastAutoAugment.random_arch.random_micro_builder import RandomMicroBuilder
-from FastAutoAugment.nas import nas_utils
+from archai.common.common import common_init
+from archai.random_arch.random_micro_builder import RandomMicroBuilder
+from archai.nas import nas_utils
 
 if __name__ == '__main__':
     conf = common_init(config_filepath='confs/random_cifar.yaml',
