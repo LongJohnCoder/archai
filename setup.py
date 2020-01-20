@@ -20,14 +20,14 @@ if platform.system()!='Windows':
     install_requires.append('ray')
 
 setuptools.setup(
-    name="PetriDishNas",
-    version="0.2",
+    name="archai",
+    version="0.3.0",
     author="Shital Shah, Debadeepta Dey,",
     author_email="shitals@microsoft.com, dedey@microsoft.com",
-    description="Implementation of Efficient Forward Architecture Search",
+    description="Research plateform for Network Architecture Search",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/microsoft/petridishnn",
+    url="https://github.com/sytelus/archai",
     packages=setuptools.find_packages(),
 	license='MIT',
     classifiers=(
@@ -38,4 +38,3 @@ setuptools.setup(
     include_package_data=True,
     install_requires=install_requires
 )
-
