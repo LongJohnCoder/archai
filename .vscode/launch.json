@@ -5,182 +5,35 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "SearchDarts cifar10",
+            "name": "All-Toy",
             "type": "python",
             "request": "launch",
-            "program": "${cwd}/scripts/darts/cifar_search.py",
+            "program": "${cwd}/scripts/main.py",
             "console": "integratedTerminal"
         },
         {
-            "name": "EvalDarts cifar10",
+            "name": "Darts-Full",
             "type": "python",
             "request": "launch",
-            "program": "${cwd}/scripts/darts/cifar_eval.py",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "EvalDarts imagenet",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/tests/scripts/imagenet_test.py",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "E2EDarts cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/darts/cifar_e2e.py",
+            "program": "${cwd}/scripts/main.py",
             "console": "integratedTerminal",
-            "args": ["--config", "confs/darts_cifar.yaml", "--config-defaults", "confs/darts_cifar.yaml"]
+            "args": ["--full", "--algos", "darts"]
         },
         {
-            "name": "ToyE2EDarts cifar10",
+            "name": "Petridish-Full",
             "type": "python",
             "request": "launch",
-            "program": "${cwd}/scripts/darts/cifar_e2e.py",
+            "program": "${cwd}/scripts/main.py",
             "console": "integratedTerminal",
-            "args": ["--config", "confs/cifar_toy.yaml", "--config-defaults", "confs/darts_cifar.yaml"]
+            "args": ["--full", "--algos", "petridish"]
         },
         {
-            "name": "ToySearchDarts cifar10",
+            "name": "Random-Full",
             "type": "python",
             "request": "launch",
-            "program": "${cwd}/scripts/darts/cifar_search.py",
+            "program": "${cwd}/scripts/main.py",
             "console": "integratedTerminal",
-            "args": ["--config", "confs/cifar_toy.yaml",
-                "--config-defaults", "confs/darts_cifar.yaml"
-            ]
-        },
-        {
-            "name": "ToyEvalDarts cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/darts/cifar_eval.py",
-            "console": "integratedTerminal",
-            "args": ["--config", "confs/cifar_toy.yaml",
-                    "--config-defaults", "confs/darts_cifar.yaml"
-            ]
-        },
-
-        {
-            "name": "ToySearchPetridish cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/petridish/cifar_search.py",
-            "console": "integratedTerminal",
-            "args": ["--config", "confs/cifar_toy.yaml",
-                "--config-defaults", "confs/petridish_cifar.yaml"
-            ]
-        },
-        {
-            "name": "ToyEvalPetridish cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/petridish/cifar_eval.py",
-            "console": "integratedTerminal",
-            "args": ["--config", "confs/cifar_toy.yaml",
-                "--config-defaults", "confs/petridish_cifar.yaml"
-            ]
-        },
-        {
-            "name": "SearchPetridish cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/petridish/cifar_search.py",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "EvalPetridish cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/petridish/cifar_eval.py",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "ToyE2EPetridish cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/petridish/cifar_e2e.py",
-            "console": "integratedTerminal",
-            "args": ["--config", "confs/cifar_toy.yaml", "--config-defaults", "confs/petridish_cifar.yaml"]
-        },
-        {
-            "name": "E2EPetridish cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/petridish/cifar_e2e.py",
-            "console": "integratedTerminal",
-            "args": ["--config", "confs/petridish_cifar.yaml", "--config-defaults", "confs/petridish_cifar.yaml"]
-        },
-
-        {
-            "name": "ToySearchRandom cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/random/cifar_search.py",
-            "console": "integratedTerminal",
-            "args": ["--config", "confs/cifar_toy.yaml",
-                "--config-defaults", "confs/random_cifar.yaml"
-            ]
-        },
-        {
-            "name": "ToyEvalRandom cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/random/cifar_eval.py",
-            "console": "integratedTerminal",
-            "args": ["--config", "confs/cifar_toy.yaml",
-                "--config-defaults", "confs/random_cifar.yaml"
-            ]
-        },
-        {
-            "name": "ToyE2ERandom cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/random/cifar_e2e.py",
-            "console": "integratedTerminal",
-            "args": ["--config", "confs/cifar_toy.yaml",
-                "--config-defaults", "confs/random_cifar.yaml"
-            ]
-        },
-        {
-            "name": "E2ERandom cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/random/cifar_e2e.py",
-            "console": "integratedTerminal",
-            "args": ["--config", "confs/random_cifar.yaml", "--config-defaults", "confs/random_cifar.yaml"]
-        },
-        {
-            "name": "SearchRandom cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/random/cifar_search.py",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "EvalRandom cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/random/cifar_eval.py",
-            "console": "integratedTerminal"
-        },
-
-        {
-            "name": "SearchAug wresnet40x2 cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/tests/aug_search.py",
-            "console": "integratedTerminal",
-            "args": ["--config", "confs/wresnet40x2_cifar10_b512.yaml"]
-        },
-
-        {
-            "name": "Dawnbench cifar10",
-            "type": "python",
-            "request": "launch",
-            "program": "${cwd}/scripts/perf/cifar10/fastai_dawnbench/archai.py",
-            "console": "integratedTerminal"
+            "args": ["--full", "--algos", "random"]
         },
 
         {

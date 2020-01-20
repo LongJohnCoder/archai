@@ -16,11 +16,11 @@ def main():
     parser = argparse.ArgumentParser(description='NAS E2E Runs')
     parser.add_argument('--algos', type=str, default='darts,petridish,random',
                         help='NAS algos to run seprated by comma')
-    parser.add_argument('--toy', action='store_false', default=True,
-                        help='Run in toy mode just to check for compile errors')
-    parser.add_argument('--search', action='store_false', default=True,
+    parser.add_argument('--full', action='store_true', default=False,
+                        help='Run in full or toy mode just to check for compile errors')
+    parser.add_argument('--no-search', action='store_true', default=False,
                         help='Run search')
-    parser.add_argument('--eval', action='store_false', default=True,
+    parser.add_argument('--no-eval', action='store_true', default=False,
                         help='Run eval')
     parser.add_argument('--exp-prefix', type=str, default='throghaway',
                         help='Experiment prefix is used for directory names')
@@ -30,9 +30,11 @@ def main():
         algo = algo.strip()
         print('Running: ', algo)
         runner_type:Type[ExperimentRunner] = runner_types[algo]
-        runner = runner_type(f'confs/{algo}_cifar.yaml', args.exp_prefix, args.toy)
+        runner = runner_type(f'confs/{algo}_cifar.yaml',
+                             base_name=f'{algo}_args.exp_prefix',
+                             toy=not args.full)
 
-        runner.run(search=args.search, eval=args.eval)
+        runner.run(search=not args.no_search, eval=not args.no_eval)
 
 
 if __name__ == '__main__':
