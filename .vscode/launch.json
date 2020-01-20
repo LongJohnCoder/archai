@@ -12,14 +12,14 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "TestDarts cifar10",
+            "name": "EvalDarts cifar10",
             "type": "python",
             "request": "launch",
             "program": "${cwd}/scripts/darts/cifar_eval.py",
             "console": "integratedTerminal"
         },
         {
-            "name": "TestDarts imagenet",
+            "name": "EvalDarts imagenet",
             "type": "python",
             "request": "launch",
             "program": "${cwd}/tests/scripts/imagenet_test.py",
@@ -52,7 +52,7 @@
             ]
         },
         {
-            "name": "ToyTestDarts cifar10",
+            "name": "ToyEvalDarts cifar10",
             "type": "python",
             "request": "launch",
             "program": "${cwd}/scripts/darts/cifar_eval.py",
@@ -73,7 +73,7 @@
             ]
         },
         {
-            "name": "ToyTestPetridish cifar10",
+            "name": "ToyEvalPetridish cifar10",
             "type": "python",
             "request": "launch",
             "program": "${cwd}/scripts/petridish/cifar_eval.py",
@@ -90,7 +90,7 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "TestPetridish cifar10",
+            "name": "EvalPetridish cifar10",
             "type": "python",
             "request": "launch",
             "program": "${cwd}/scripts/petridish/cifar_eval.py",
@@ -124,7 +124,7 @@
             ]
         },
         {
-            "name": "ToyTestRandom cifar10",
+            "name": "ToyEvalRandom cifar10",
             "type": "python",
             "request": "launch",
             "program": "${cwd}/scripts/random/cifar_eval.py",
@@ -159,7 +159,7 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "TestRandom cifar10",
+            "name": "EvalRandom cifar10",
             "type": "python",
             "request": "launch",
             "program": "${cwd}/scripts/random/cifar_eval.py",
