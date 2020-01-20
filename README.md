@@ -13,4 +13,3 @@
 * pip install -e .
 
 # Test installation
-* From archai root 'bash scripts/test_toy_examples/test_toy_examples.sh'
