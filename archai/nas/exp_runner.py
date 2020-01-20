@@ -21,15 +21,14 @@ class ExperimentRunner(ABC, EnforceOverrides):
 
     def run_search(self)->Config:
         conf = self._init('search')
-
-        # region config
         conf_search = conf['nas']['search']
-        # endregion
+        self._run_search(conf_search)
+        return conf
 
+    def _run_search(self, conf_search:Config)->None:
         micro_builder = self.micro_builder()
         trainer_class = self.trainer_class()
         search.search_arch(conf_search, micro_builder, trainer_class)
-        return conf
 
     def _init(self, suffix:str)->Config:
         config_filename, default_config_filename = self.config_filename, None
@@ -43,13 +42,14 @@ class ExperimentRunner(ABC, EnforceOverrides):
                         ])
         return conf
 
-    def _run_eval(self, conf:Config)->Config:
-        conf_eval = conf['nas']['eval']
+    def _run_eval(self, conf_eval:Config)->None:
         evaluate.eval_arch(conf_eval, micro_builder=self.micro_builder())
-        return conf
 
-    def run_eval(self)->None:
+    def run_eval(self)->Config:
         conf = self._init('eval')
+        conf_eval = conf['nas']['eval']
+        self._run_eval(conf_eval)
+        return conf
 
     def _copy_final_desc(self, search_conf)->Tuple[Config, Config]:
         search_desc_filename = search_conf['nas']['search']['final_desc_filename']
@@ -72,7 +72,8 @@ class ExperimentRunner(ABC, EnforceOverrides):
 
         if search and eval:
             search_conf, eval_conf = self._copy_final_desc(search_conf)
-            self._run_eval(eval_conf)
+            conf_eval = eval_conf['nas']['eval']
+            self._run_eval(conf_eval)
         elif eval:
             eval_conf = self.run_eval()
 
