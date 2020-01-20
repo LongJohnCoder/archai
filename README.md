@@ -5,7 +5,7 @@
 # Installation
 
 * Ubuntu 
-* Install cuda 10.1
+* Make sure you have nvidia driver that is compatible with cuda 10.1. 
 * Install anaconda package manager
 * conda env create -f archaicuda101.yml
 * conda activate archaicuda101
