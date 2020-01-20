@@ -1,5 +1,6 @@
 common:
-  experiment_name: 'experiment1' # you should supply from command line
+  experiment_name: 'throwaway' # you should supply from command line
+  experiment_desc: 'throwaway'
   logdir: "~/logdir"
   seed: 2
   enable_tb: True # if False then TensorBoard logging is ignored

@@ -53,6 +53,7 @@ def get_tb_writer() -> SummaryWriterAny:
 
 # initializes random number gen, debugging etc
 def common_init(config_filepath: Optional[str]=None,
+                config_defaults_filepath:Optional[str]=None,
                 param_args: list = [],
                 log_level=logging.DEBUG, is_master=True, use_args=True) \
         -> Config:
@@ -70,6 +71,7 @@ def common_init(config_filepath: Optional[str]=None,
 
 
     conf = Config(config_filepath=config_filepath,
+                  config_defaults_filepath=config_defaults_filepath,
                   param_args=param_args,
                   use_args=use_args)
     Config.set(conf)
