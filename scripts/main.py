@@ -31,7 +31,7 @@ def main():
         print('Running: ', algo)
         runner_type:Type[ExperimentRunner] = runner_types[algo]
         runner = runner_type(f'confs/{algo}_cifar.yaml',
-                             base_name=f'{algo}_args.exp_prefix',
+                             base_name=f'{algo}_{args.exp_prefix}',
                              toy=not args.full)
 
         runner.run(search=not args.no_search, eval=not args.no_eval)

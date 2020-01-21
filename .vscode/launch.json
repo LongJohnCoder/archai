@@ -20,6 +20,14 @@
             "args": ["--full", "--algos", "darts"]
         },
         {
+            "name": "Darts-Search-Toy",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/scripts/main.py",
+            "console": "integratedTerminal",
+            "args": ["--no-eval", "--algos", "darts"]
+        },
+        {
             "name": "Petridish-Full",
             "type": "python",
             "request": "launch",

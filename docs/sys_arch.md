@@ -81,3 +81,31 @@ Idea:
     When node gets checkpoint, if it finds own key
         it restores state, iteration and continues that iteration
 
+## Logging
+
+We want logs to be machine readable. To that end we can think of log as dictionary. One can insert new key, value pair in this dictionary but we should allow to overwrite existing values unless value themselves are container type in which case, the log value is appended in that container. Entire log is container itself of type dictionary. ANothe container is array.
+
+log is class derived from ordered dict. Insert values as usual. key can be option in which case internal counter may be used. It has one additional method child(key) which returns log object inserted at the key.
+
+
+```
+logger.add(path, val, severity=info)
+
+path is string or tuple. If tuple then it should consist of ordered dictionary keys.
+
+logger.add('cuda_devices', 5)
+logger.add({'cuda_devices': 5, 'cuda_ver':4})
+logger.add(('epochs', 5), {acc=0.9, time=4.5})
+logger.add(('epochs', 5), {acc=0.9, time=4.5})
+
+logger.begin_sec('epochs')
+    logger.begin.sec(epoch_i)
+
+        logger.add(key1, val1)
+        logger.add({...})
+
+
+    logger.end_Sec()
+longer.end_sec()
+
+```
