@@ -15,7 +15,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='NAS E2E Runs')
     parser.add_argument('--algos', type=str, default='darts,petridish,random',
-                        help='NAS algos to run seprated by comma')
+                        help='NAS algos to run seperated by comma')
     parser.add_argument('--full', action='store_true', default=False,
                         help='Run in full or toy mode just to check for compile errors')
     parser.add_argument('--no-search', action='store_true', default=False,
