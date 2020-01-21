@@ -22,7 +22,7 @@ def main():
                         help='Run search')
     parser.add_argument('--no-eval', action='store_true', default=False,
                         help='Run eval')
-    parser.add_argument('--exp-prefix', type=str, default='throghaway',
+    parser.add_argument('--exp-prefix', type=str, default='throwaway',
                         help='Experiment prefix is used for directory names')
     args, extra_args = parser.parse_known_args()
 
