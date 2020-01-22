@@ -46,8 +46,6 @@ class XnasOp(Op):
 
     @overrides
     def forward(self, x):
-        # TODO: Why will generic Python sum work here?
-        # Shouldn't we need Pytorch sums? How is darts getting away with it?
         numer = sum(w * op(x) for w, op in zip(self._alphas, self._ops))
         denom = sum(self._alphas)
         return torch.div(numer, denom)
@@ -83,7 +81,9 @@ class XnasOp(Op):
         if not len(self._alphas):
             # TODO: Better initialization than random?
             new_p = nn.Parameter(1.0e-3*torch.randn(len(XnasOp.PRIMITIVES)), requires_grad=False)
-            # TODO: What happens with self._reg_alphas?
-            # Why are we not putting new_p in self.parameters?
+            # NOTE: This is a way to register parameters with PyTorch. 
+            # One creates a dummy variable with the parameters and then
+            # asks back for the parameters in the object from Pytorch 
+            # which automagically registers the just created parameters.
             self._reg_alphas = new_p
             self._alphas = [p for p in self.parameters()]

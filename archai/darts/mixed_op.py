@@ -79,5 +79,9 @@ class MixedOp(Op):
         if not len(self._alphas):
             new_p = nn.Parameter(  # TODO: use better init than uniform random?
                 1.0e-3*torch.randn(len(MixedOp.PRIMITIVES)), requires_grad=True)
+            # NOTE: This is a way to register parameters with PyTorch. 
+            # One creates a dummy variable with the parameters and then
+            # asks back for the parameters in the object from Pytorch 
+            # which automagically registers the just created parameters.
             self._reg_alphas = new_p
             self._alphas = [p for p in self.parameters()]
