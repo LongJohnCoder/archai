@@ -47,7 +47,7 @@ class BilevelArchTrainer(ArchTrainer):
         self._bilevel_optim = _BilevelOptimizer(self._conf_alpha_optim, w_momentum,
                                                 w_decay, self.model, lossfn)
         if resuming:
-            self._bilevel_optim.load_state_dict(self.check_point['bilelvel_optim'])
+            self._bilevel_optim.load_state_dict(self.check_point['bilevel_optim'])
 
     @overrides
     def post_fit(self, train_dl:DataLoader, val_dl:Optional[DataLoader])->None:
@@ -88,7 +88,7 @@ class BilevelArchTrainer(ArchTrainer):
     @overrides
     def update_checkpoint(self, check_point:CheckPoint)->None:
         super().update_checkpoint(check_point)
-        check_point['bilelvel_optim'] = self._bilevel_optim.state_dict()
+        check_point['bilevel_optim'] = self._bilevel_optim.state_dict()
 
 class _BilevelOptimizer:
     def __init__(self, conf_alpaha_optim:Config, w_momentum: float, w_decay: float,
