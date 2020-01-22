@@ -135,11 +135,11 @@ class _BilevelOptimizer:
         do manual sgd update."""
         # TODO: other alternative may be to (1) copy model
         #   (2) set require_grads = False on alphas
-        #   (3) loss and step on vmodel (4) set back require_grades = True
+        #   (3) loss and step on vmodel (4) set back require_grads = True
         with torch.no_grad():  # no need to track gradient for these operations
             for w, vw, g in zip(
                     self._model.weights(), self._vmodel.weights(), gradients):
-                # simulate mometum update on model but put this update in vmodel
+                # simulate momentum update on model but put this update in vmodel
                 m = w_optim.state[w].get(
                     'momentum_buffer', 0.)*self._w_momentum
                 vw.copy_(w - lr * (m + g + self._w_weight_decay*w))
@@ -159,7 +159,7 @@ class _BilevelOptimizer:
         self._backward_bilevel(x_train, y_train, x_valid, y_valid,
                                lr, w_optim)
 
-        # at this point we should have model with updated grades for w and alpha
+        # at this point we should have model with updated gradients for w and alpha
         self._alpha_optim.step()
 
     def _backward_bilevel(self, x_train, y_train, x_valid, y_valid, lr, w_optim):
