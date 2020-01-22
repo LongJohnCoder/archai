@@ -91,7 +91,7 @@ class BilevelArchTrainer(ArchTrainer):
         check_point['bilevel_optim'] = self._bilevel_optim.state_dict()
 
 class _BilevelOptimizer:
-    def __init__(self, conf_alpaha_optim:Config, w_momentum: float, w_decay: float,
+    def __init__(self, conf_alpha_optim:Config, w_momentum: float, w_decay: float,
                  model: Model, lossfn: _Loss) -> None:
         logger = get_logger()
         self._w_momentum = w_momentum  # momentum for w
@@ -104,7 +104,7 @@ class _BilevelOptimizer:
         # original weights
         self._vmodel = copy.deepcopy(model)
         # this is the optimizer to optimize alphas parameter
-        self._alpha_optim = utils.create_optimizer(conf_alpaha_optim, model.alphas())
+        self._alpha_optim = utils.create_optimizer(conf_alpha_optim, model.alphas())
 
     def state_dict(self)->dict:
         return {
