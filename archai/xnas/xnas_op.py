@@ -1,6 +1,6 @@
 from archai.common.utils import AverageMeter
 from collections import defaultdict
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, Optional, Tuple, List
 
 import torch
 from torch import nn
@@ -50,17 +50,25 @@ class XnasOp(Op):
         self._is_first_call = True
         self._avg_grad_meter = AverageMeter()
 
+    def get_avg_grad(self)->torch.Tensor:
+        return self._avg_grad_meter.avg
 
+    def update_alphas(self, eta:float):
+        # TODO: This will fail. Will find the actual dimensions at runtime and fix 
+        rewards = -self._avg_grad_meter * self._activs
+        self._alphas[0] = self._alphas[0] * torch.exp(eta * rewards)
+        # TODO: Implement the weak learner eviction
+       
     def _save_grad(self):
         def hook(grad):
             # TODO: Note that we have to reduce the minibatch to 1 finally
             self._avg_grad_meter.update(grad, n=1)
         return hook
 
-
     @overrides
     def forward(self, x):
-        numer = sum(w * op(x) for w, op in zip(self._alphas, self._ops))
+        self._activs = [op(x) for op in self._ops]
+        numer = sum(w * activ for w, activ in zip(self._alphas, self._activs))
         denom = sum(self._alphas)
         self.pt = torch.div(numer, denom)
 
@@ -95,6 +103,8 @@ class XnasOp(Op):
     def can_drop_path(self) -> bool:
         return False
 
+    # TODO: Do we even need alphas to be registered with Pytorch 
+    # since we don't have to compute gradients on them?
     def _set_alphas(self, alphas: Iterable[nn.Parameter]) -> None:
         # must call before adding other ops
         assert len(list(self.parameters())) == 0

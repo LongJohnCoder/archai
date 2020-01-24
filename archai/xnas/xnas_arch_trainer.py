@@ -39,16 +39,11 @@ class XnasArchTrainer(ArchTrainer):
 
         # optimizers, schedulers needs to be recreated for each fit call
         # as they have state
-        assert val_dl is not None
-        w_momentum = self._conf_w_optim['momentum']
-        w_decay = self._conf_w_optim['decay']
+        assert val_dl is not None       
         lossfn = utils.get_lossfn(self._conf_w_lossfn).to(self.device)
 
         self._xnas_optim = _XnasOptimizer(self._conf_alpha_optim, self.model, lossfn)
 
-        if resuming:
-            # TODO: Implement load_state_dict for _xnas_optim
-            self._xnas_optim.load_state_dict(self.check_point['bilevel_optim'])
 
     @overrides
     def post_fit(self, train_dl:DataLoader, val_dl:Optional[DataLoader])->None:
@@ -89,13 +84,13 @@ class XnasArchTrainer(ArchTrainer):
     @overrides
     def update_checkpoint(self, check_point:CheckPoint)->None:
         super().update_checkpoint(check_point)
-        # TODO: Implement state_dict() for xnas optimizer
-        check_point['xnas_optim'] = self._xnas_optim.state_dict()
+       
 
 class _XnasOptimizer:
     def __init__(self, conf_alpha_optim:Config,
                  model: Model, lossfn: _Loss) -> None:
         logger = get_logger()
+        self._alpha_lr = conf_alpha_optim['lr']
        
         self._lossfn = lossfn
         self._model = model  # main model with respect to w and alpha
@@ -117,7 +112,13 @@ class _XnasOptimizer:
         loss.backward()
 
         # for each op in the model update alphas 
-        
+        for op in self._model.alphaops():
+            op.update_alphas()
+
+            
+
+
+            
         
 
         
