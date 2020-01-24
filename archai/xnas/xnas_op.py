@@ -1,3 +1,5 @@
+from archai.common.utils import AverageMeter
+from collections import defaultdict
 from typing import Iterable, Optional, Tuple
 
 import torch
@@ -44,11 +46,30 @@ class XnasOp(Op):
                 affine=affine, alphas=alphas)
             self._ops.append(op)
 
+        # for getting gradients to non-leaf node
+        self._is_first_call = True
+        self._avg_grad_meter = AverageMeter()
+
+
+    def _save_grad(self):
+        def hook(grad):
+            # TODO: Note that we have to reduce the minibatch to 1 finally
+            self._avg_grad_meter.update(grad, n=1)
+        return hook
+
+
     @overrides
     def forward(self, x):
         numer = sum(w * op(x) for w, op in zip(self._alphas, self._ops))
         denom = sum(self._alphas)
-        return torch.div(numer, denom)
+        self.pt = torch.div(numer, denom)
+
+        # register gradient hook if first time
+        if self._is_first_call:
+            self.pt.register_hook(self._save_grad())
+            self._is_first_call = False
+
+        return self.pt
 
 
     @overrides
