@@ -12,7 +12,7 @@ from . import nas_utils
 
 def eval_arch(conf_eval:Config, micro_builder:Optional[MicroBuilder]):
     logger = get_logger()
-    logger.begin('eval')
+    logger.pushd('eval')
 
     # region conf vars
     conf_loader       = conf_eval['loader']
@@ -45,17 +45,13 @@ def eval_arch(conf_eval:Config, micro_builder:Optional[MicroBuilder]):
 
 
     trainer = Trainer(conf_train, model, device, checkpoint, aux_tower=True)
-    train_metrics, test_metrics = trainer.fit(train_dl, test_dl)
-
-    # save metrics
+    train_metrics = trainer.fit(train_dl, test_dl)
     train_metrics.save('eval_train_metrics')
-    if test_metrics:
-        test_metrics.save('eval_test_metrics')
 
     # save model
     save_path = model.save(save_filename)
     logger.info({'model_save_path': save_path})
-    logger.end()
+    logger.popd()
 
 
 

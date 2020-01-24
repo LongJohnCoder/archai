@@ -44,12 +44,12 @@ class ArchTrainer(Trainer, EnforceOverrides):
     def _draw_model(self) -> None:
         if not self._plotsdir:
             return
-        train_metrics, val_metrics = self.get_metrics()
-        if (val_metrics and val_metrics.is_best()) or \
-                (train_metrics and train_metrics.is_best()):
+        train_metrics = self.get_metrics()
+        if train_metrics and \
+            (train_metrics.cur_epoch()==train_metrics.best_epoch()):
 
             # log model_desc as a image
             plot_filepath = os.path.join(
                 self._plotsdir, "EP{train_metrics.epoch:03d}")
             draw_model_desc(self.model.finalize(), plot_filepath+"-normal",
-                            caption=f"Epoch {train_metrics.epoch}")
+                            caption=f"Epoch {train_metrics.epochs()-1}")

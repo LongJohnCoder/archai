@@ -16,8 +16,6 @@ from ..common.checkpoint import CheckPoint
 from .apex_utils import Amp
 
 
-TMetrics = Tuple[Optional[Metrics], Optional[Metrics]]
-
 class Trainer(EnforceOverrides):
     def __init__(self, conf_train:Config, model:nn.Module, device,
                  checkpoint:Optional[CheckPoint], aux_tower:bool)->None:
@@ -46,9 +44,9 @@ class Trainer(EnforceOverrides):
         self._metrics = None
         self._amp = Amp(self._apex)
 
-    def fit(self, train_dl:DataLoader, val_dl:Optional[DataLoader])->TMetrics:
+    def fit(self, train_dl:DataLoader, val_dl:Optional[DataLoader])->Metrics:
         logger = get_logger()
-        logger.begin(self._title)
+        logger.pushd(self._title)
 
         self._metrics = self._create_metrics()
 
@@ -74,17 +72,17 @@ class Trainer(EnforceOverrides):
         if self._checkpoint is not None:
             self._checkpoint.clear()
 
-        logger.begin('epochs')
+        logger.pushd('epochs')
         for epoch in range(start_epoch, self._epochs):
-            logger.begin(epoch)
+            logger.pushd(epoch)
             self._set_drop_path(epoch, self._epochs)
 
             self.pre_epoch(train_dl, val_dl)
             self._train_epoch(train_dl)
             self.post_epoch(train_dl, val_dl)
 
-            logger.end()
-        logger.end()
+            logger.popd()
+        logger.popd()
         self.post_fit(train_dl, val_dl)
 
         # make sure we don't keep references to the graph
@@ -92,7 +90,7 @@ class Trainer(EnforceOverrides):
         del self._sched
 
 
-        logger.end()
+        logger.popd()
         return self.get_metrics()
 
     def create_optimizer(self)->Optimizer:
@@ -108,8 +106,8 @@ class Trainer(EnforceOverrides):
     def get_scheduler(self)->Optional[_LRScheduler]:
         return self._sched
 
-    def get_metrics(self)->TMetrics:
-        return self._metrics, self._tester.get_metrics() if self._tester else None
+    def get_metrics(self)->Metrics:
+        return self._metrics
 
     #########################  hooks #########################
     def pre_fit(self, train_dl:DataLoader, val_dl:Optional[DataLoader],
@@ -130,7 +128,7 @@ class Trainer(EnforceOverrides):
                     self._metrics.epochs() >= self._epochs:
                 val_metrics = self._tester.test(val_dl)
 
-        self._metrics.post_epoch(val_metrics)
+        self._metrics.post_epoch(val_metrics, lr=self._optim.param_groups[0]['lr'])
         if self._checkpoint is not None and \
                 (self._metrics.epochs() % self._checkpoint.freq == 0 or \
                     self._metrics.epochs() >= self._epochs):
@@ -190,9 +188,9 @@ class Trainer(EnforceOverrides):
         if self._sched and self._sched_on_epoch:
             self._sched.step()
 
-        logger.begin('steps')
+        logger.pushd('steps')
         for step, (x, y) in enumerate(train_dl):
-            logger.begin(step)
+            logger.pushd(step)
             assert self.model.training # derived class might alter the mode
 
             # enable non-blocking on 2nd part so its ready when we get to it
@@ -219,8 +217,8 @@ class Trainer(EnforceOverrides):
                 self._sched.step()
 
             self.post_step(x, y, logits, loss, steps)
-            logger.end()
-        logger.end()
+            logger.popd()
+        logger.popd()
 
     def compute_loss(self, lossfn:Callable,
                      x:Tensor, y:Tensor, logits:Tensor,

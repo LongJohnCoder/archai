@@ -1,9 +1,8 @@
-from typing import Any, Mapping, Optional, Union, List
+from typing import Any, Mapping, Optional, Union, List, Iterator
 from collections import OrderedDict
 import logging
 import time
 import atexit
-from functools import partial
 import itertools
 import yaml
 
@@ -38,7 +37,7 @@ class OrderedDictLogger:
             self._update_key(self._call_count, msg, node=self._root(), path=[key])
 
         if level is not None and self._logger:
-            self._logger.log(msg='|'.join(self.path()) + ' ' + msg, level=level)
+            self._logger.log(msg=self.path() + ' ' + msg, level=level)
 
         if self._save_delay is not None and \
                 time.time() - self._last_save > self._save_delay:
@@ -101,25 +100,26 @@ class OrderedDictLogger:
                 self._stack[i] = od
             last_od = od
 
-    def begin(self, *keys:Any)->'OrderedDictLogger':
+    def pushd(self, *keys:Any)->'OrderedDictLogger':
         self._path.append([str(k) for k in keys])
         self._stack.append(None) # delay create
 
         return self # this allows calling __enter__
 
-    def end(self):
+    def popd(self):
         if len(self._stack)==1:
-            raise RuntimeError('There is no child logger, end() call is invalid')
+            raise RuntimeError('There is no child logger, popd() call is invalid')
         self._stack.pop()
         self._path.pop()
 
-    def path(self)->List[str]:
+    def path(self)->str:
         # flatten array of array
-        return list(itertools.chain.from_iterable(self._path))
+        return '/'.join(itertools.chain.from_iterable(self._path[1:]))
+
     def __enter__(self)->'OrderedDictLogger':
         return self
     def __exit__(self, type, value, traceback):
-        self.end()
+        self.popd()
 
     def __contains__(self, key:Any):
         return key in self._cur()

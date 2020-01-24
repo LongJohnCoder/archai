@@ -29,7 +29,7 @@ class Tester(EnforceOverrides):
 
     def test(self, test_dl: DataLoader)->Metrics:
         logger = get_logger()
-        logger.begin(self._title)
+        logger.pushd(self._title)
 
         self._metrics = self._create_metrics()
 
@@ -38,7 +38,7 @@ class Tester(EnforceOverrides):
         self._test_epoch(test_dl)
         self._post_test()
 
-        logger.end()
+        logger.popd()
         return self.get_metrics() # type: ignore
 
     def _test_epoch(self, test_dl: DataLoader)->None:
@@ -48,9 +48,9 @@ class Tester(EnforceOverrides):
         self.model.eval()
         steps = len(test_dl)
 
-        with torch.no_grad(), logger.begin('steps'):
+        with torch.no_grad(), logger.pushd('steps'):
             for step, (x, y) in enumerate(test_dl):
-                logger.begin(step)
+                logger.pushd(step)
 
                 assert not self.model.training # derived class might alter the mode
 
@@ -64,7 +64,7 @@ class Tester(EnforceOverrides):
                 loss = self._lossfn(logits, y)
                 self._post_step(x, y, logits, loss, steps, self._metrics)
 
-                logger.end()
+                logger.popd()
         self._metrics.post_epoch(None)
 
     def get_metrics(self)->Optional[Metrics]:
