@@ -68,8 +68,8 @@ class XnasOp(Op):
     @overrides
     def forward(self, x):
         self._activs = [op(x) for op in self._ops]
-        numer = sum(w * activ for w, activ in zip(self._alphas, self._activs))
-        denom = sum(self._alphas)
+        numer = sum(w * activ for w, activ in zip(self._alphas[0], self._activs))
+        denom = sum(self._alphas[0])
         self.pt = torch.div(numer, denom)
 
         # register gradient hook if first time

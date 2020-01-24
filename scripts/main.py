@@ -1,3 +1,4 @@
+from archai.xnas.xnas_exp_runner import XnasExperimentRunner
 import argparse
 from typing import Dict, Type
 
@@ -5,16 +6,18 @@ from archai.nas.exp_runner import ExperimentRunner
 from archai.darts.darts_exp_runner import DartsExperimentRunner
 from archai.petridish.petridish_exp_runner import PetridishExperimentRunner
 from archai.random_arch.random_exp_runner import RandomExperimentRunner
+from archai.xnas.xnas_exp_runner import XnasExperimentRunner
 
 def main():
     runner_types:Dict[str, Type[ExperimentRunner]] = {
         'darts': DartsExperimentRunner,
         'petridish': PetridishExperimentRunner,
+        'xnas': XnasExperimentRunner,
         'random': RandomExperimentRunner
     }
 
     parser = argparse.ArgumentParser(description='NAS E2E Runs')
-    parser.add_argument('--algos', type=str, default='darts,petridish,random',
+    parser.add_argument('--algos', type=str, default='darts,petridish,xnas,random',
                         help='NAS algos to run seperated by comma')
     parser.add_argument('--full', action='store_true', default=False,
                         help='Run in full or toy mode just to check for compile errors')
