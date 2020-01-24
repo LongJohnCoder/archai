@@ -17,10 +17,10 @@ class Amp:
             try:
                 from apex import amp
                 self._amp = amp
-                logger.warn('Nvidia Apex is installed and will be used')
+                logger.warn({'apex': True})
             except ModuleNotFoundError:
                 if not Amp._warning_shown:
-                    logger.warn('Nvidia Apex is not installed. Mixed precision cannot be used.')
+                    logger.warn({'apex': False})
                     Amp._warning_shown = True
                 self._amp = None
         else:

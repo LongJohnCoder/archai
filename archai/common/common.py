@@ -11,6 +11,7 @@ from torch.utils.tensorboard import SummaryWriter
 from .config import Config
 from .stopwatch import StopWatch
 from . import utils
+from .ordereddict_logger import OrderedDictLogger
 
 class SummaryWriterDummy:
     def __init__(self, log_dir):
@@ -20,7 +21,7 @@ class SummaryWriterDummy:
         pass
 
 SummaryWriterAny = Union[SummaryWriterDummy, SummaryWriter]
-_logger: Optional[logging.Logger] = None
+_logger: Optional[OrderedDictLogger] = None
 _tb_writer: SummaryWriterAny = None
 
 
@@ -39,13 +40,11 @@ def get_experiment_name()->str:
 def get_expdir()->Optional[str]:
     return get_conf_common()['expdir']
 
-def get_logger() -> logging.Logger:
+def get_logger() -> OrderedDictLogger:
     global _logger
     if _logger is None:
         raise RuntimeError('get_logger call made before logger was setup!')
     return _logger
-
-
 
 def get_tb_writer() -> SummaryWriterAny:
     global _tb_writer
@@ -83,7 +82,7 @@ def common_init(config_filepath: Optional[str]=None,
     _setup_logger()
 
     logger = get_logger()
-    logger.info(f'expdir: {expdir}')
+    logger.info({'expdir':expdir})
 
     _setup_gpus()
 
@@ -151,12 +150,13 @@ def _setup_logger():
     experiment_name = get_experiment_name()
 
     # file where logger would log messages
-    log_filepath = expdir_abspath('logs.log')
-    global _logger
-    _logger = utils.setup_logging(filepath=log_filepath, name=experiment_name)
-    if not log_filepath:
-        _logger.warn(
+    sys_log_filepath = expdir_abspath('logs.log')
+    sys_logger = utils.setup_logging(filepath=sys_log_filepath, name=experiment_name)
+    if not sys_log_filepath:
+        sys_logger.warn(
             'logdir not specified, no logs will be created or any models saved')
+    global _logger
+    _logger = OrderedDictLogger(expdir_abspath('logs.yaml'), sys_logger)
 
 def _setup_gpus():
     conf_common = get_conf_common()
@@ -166,22 +166,19 @@ def _setup_gpus():
         csv = str(conf_common['gpus'])
         #os.environ['CUDA_VISIBLE_DEVICES'] = str(conf_common['gpus'])
         torch.cuda.set_device(int(csv.split(',')[0]))
-        logger.info('Only these GPUs will be used: {}'.format(
-            conf_common['gpus']))
+        logger.info({'gpu_ids': conf_common['gpus']})
         # alternative: torch.cuda.set_device(config.gpus[0])
 
     seed = conf_common['seed']
     utils.setup_cuda(seed)
 
     if conf_common['detect_anomaly']:
-        logger.warn(
-            'PyTorch code will be 6X slower because detect_anomaly=True.')
+        logger.warn('set_detect_anomaly', True)
         torch.autograd.set_detect_anomaly(True)
 
-    logger.info('Machine has {} gpu(s): {}'.format(torch.cuda.device_count(),
-        utils.cuda_device_names()))
-    logger.info('Original CUDA_VISIBLE_DEVICES: {}'.format(
-        os.environ['CUDA_VISIBLE_DEVICES'] if 'CUDA_VISIBLE_DEVICES' in os.environ else 'NotSet'))
+    logger.info({'gpu_names': utils.cuda_device_names()})
+    logger.info({'prev_CUDA_VISIBLE_DEVICES': os.environ['CUDA_VISIBLE_DEVICES']
+               if 'CUDA_VISIBLE_DEVICES' in os.environ else 'NotSet'})
 
     # gpu_usage = os.popen(
     #     'nvidia-smi --query-gpu=memory.total,memory.used --format=csv,nounits,noheader'

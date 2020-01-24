@@ -39,7 +39,7 @@ class Model(nn.Module):
         self.linear = nn.Linear(model_desc.cell_descs[-1].cell_ch_out,
                                 model_desc.n_classes)
 
-        logger.info(f'{yaml.dump(self.summary())}')
+        logger.info({'model_summary': self.summary()})
 
     def _build_cell(self, cell_desc:CellDesc,
                     aux_tower_desc:Optional[AuxTowerDesc],

@@ -82,12 +82,12 @@ def get_dataloaders(dataroot:str, dataset:str,
     # if debugging in vscode, workers > 0 gets termination
     if utils.is_debugging():
         train_workers = test_workers = 0
-        logger.warn('Debugger is detected, lower performance settings may be used.')
+        logger.warn({'debugger': True})
     if train_workers is None:
         train_workers = torch.cuda.device_count() * 4
     if test_workers is None:
         test_workers = torch.cuda.device_count() * 4
-    logger.info(f'train_workers = {train_workers}, test_workers={test_workers}')
+    logger.info({'train_workers': train_workers, 'test_workers':test_workers})
 
     # get usual random crop/flip transforms
     transform_train, transform_test = get_transforms(dataset, aug, cutout)
@@ -127,10 +127,11 @@ def get_dataloaders(dataroot:str, dataset:str,
 
     assert val_ratio > 0.0 or validloader is None
 
-    logger.info('Dataset batches: train={}, val={}, test={}'.format(
-        len(trainloader) if trainloader is not None else 'None',
-        len(validloader) if validloader is not None else 'None',
-        len(testloader) if testloader is not None else 'None'))
+    logger.info({
+        'train_batches': len(trainloader) if trainloader is not None else None,
+        'val_batches': len(validloader) if validloader is not None else None,
+        'test_batches': len(testloader) if testloader is not None else None
+    })
 
     # we have to return train_sampler because of horovod
     return trainloader, validloader, testloader, train_sampler
@@ -359,7 +360,6 @@ def _get_datasets(dataset, dataroot, load_train:bool, load_test:bool,
                     idx120.index(trainset.samples[idx][1]))
             trainset = Subset(trainset, train_idx)
             trainset.targets = targets
-            logger.info('reduced_imagenet train={}'.format(len(trainset)))
         if load_test:
             testset = ImageNet(root=os.path.join(dataroot, 'imagenet-pytorch'),
                 split='val', transform=transform_test)
@@ -375,10 +375,10 @@ def _get_datasets(dataset, dataroot, load_train:bool, load_test:bool,
         raise ValueError('invalid dataset name=%s' % dataset)
 
     if train_max_size > 0:
-        logger.warn('Trainset trimmed to max_batches = {}'.format(train_max_size))
+        logger.warn({'train_max_batches': train_max_size})
         trainset = LimitDataset(trainset, train_max_size)
     if test_max_size > 0:
-        logger.warn('Testset trimmed to max_batches = {}'.format(test_max_size))
+        logger.warn({'test_max_batches': test_max_size})
         testset = LimitDataset(testset, test_max_size)
 
     return  trainset, testset
@@ -399,13 +399,13 @@ def _get_train_sampler(val_ratio:float, val_fold:int, trainset, horovod,
     assert val_fold >= 0
 
     train_sampler, valid_sampler = None, None
+    logger.info({'val_ratio': val_ratio})
     if val_ratio > 0.0: # if val_ratio is not specified then sampler is empty
         """stratified shuffle val_ratio will yield return total of n_splits,
         each val_ratio containing tuple of train and valid set with valid set
         size portion = val_ratio, while samples for each class having same
         proportions as original dataset"""
 
-        logger.info('Validation set ratio = {}'.format(val_ratio))
 
         # TODO: random_state should be None so np.random is used
         # TODO: keep hardcoded n_splits=5?
@@ -431,8 +431,6 @@ def _get_train_sampler(val_ratio:float, val_fold:int, trainset, horovod,
             train_sampler = torch.utils.data.distributed.DistributedSampler(
                     train_sampler, num_replicas=hvd.size(), rank=hvd.rank())
     else:
-        logger.info('Validation set is not produced')
-
         # this means no sampling, validation set would be empty
         valid_sampler = SubsetSampler([])
 
@@ -450,7 +448,7 @@ def _add_augs(transform_train, aug:Union[List, str], cutout:int):
     # TODO: recheck: total_aug remains None in original fastaug code
     total_aug = augs = None
 
-    logger.info(f'Additional augmentation = "{aug}"')
+    logger.info({'augmentation': aug})
     if isinstance(aug, list):
         transform_train.transforms.insert(0, Augmentation(aug))
     elif aug:
@@ -476,7 +474,7 @@ def _add_augs(transform_train, aug:Union[List, str], cutout:int):
 
     # add cutout transform
     # TODO: use PyTorch built-in cutout
-    logger.info('Cutout = {}'.format(cutout))
+    logger.info({'cutout': cutout})
     if cutout > 0:
         transform_train.transforms.append(CutoutDefault(cutout))
 
