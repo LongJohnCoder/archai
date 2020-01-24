@@ -107,13 +107,18 @@ class _XnasOptimizer:
 
     def step(self, x_train: Tensor, y_train: Tensor, x_valid: Tensor, y_valid: Tensor) -> None:
 
-       
-        # update alphas based on EG rule
-        # -------------------------------
+        # put model in train mode just to be safe
+        self._model.train()
 
-        # for each op in model we will need to compute
-        # the average 
+        # put model through val data
+        loss = self._get_loss(self._model, self._lossfn, x_valid, y_valid)
 
+        # compute gradients
+        loss.backward()
+
+        # for each op in the model update alphas 
+        
+        
 
         
         

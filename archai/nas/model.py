@@ -75,6 +75,10 @@ class Model(nn.Module):
             for w in cell.weights():
                 yield w
 
+    def alphaops(self)->Iterable[Op]:
+        for cell in self._cells:
+            yield cell.alphaops
+
     @overrides
     def forward(self, x)->Tuple[Tensor, Optional[Tensor]]:
         """

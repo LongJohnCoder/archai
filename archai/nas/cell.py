@@ -60,6 +60,12 @@ class Cell(nn.Module, ABC, EnforceOverrides):
                 for p in edge.weights():
                     yield p
 
+    def alphaops(self)->Iterable[Op]:
+        for node in self._dag:
+            for edge in node:
+                yield edge.op
+
+
     @overrides
     def forward(self, s0, s1):
         s0 = self._preprocess0(s0)

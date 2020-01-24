@@ -40,3 +40,6 @@ class DagEdge(nn.Module):
     def weights(self)->Iterable[nn.Parameter]:
         for w in self._op.weights():
             yield w
+
+    def op(self)->Op:
+        return self._op
