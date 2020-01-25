@@ -2,6 +2,7 @@ import logging
 import numpy as np
 import os
 from typing import List, Iterable, Union, Optional
+import atexit
 
 import yaml
 
@@ -19,11 +20,13 @@ class SummaryWriterDummy:
 
     def add_scalar(self, *args, **kwargs):
         pass
+    def flush(self):
+        pass
 
 SummaryWriterAny = Union[SummaryWriterDummy, SummaryWriter]
 _logger: Optional[OrderedDictLogger] = None
 _tb_writer: SummaryWriterAny = None
-
+_atexit_reg = False # is hook for atexit registered?
 
 def get_conf()->Config:
     return Config.get()
@@ -49,6 +52,12 @@ def get_logger() -> OrderedDictLogger:
 def get_tb_writer() -> SummaryWriterAny:
     global _tb_writer
     return _tb_writer
+
+def on_app_exit():
+    writer = get_tb_writer()
+    writer.flush()
+    logger = get_logger()
+    logger.save()
 
 # initializes random number gen, debugging etc
 def common_init(config_filepath: Optional[str]=None,
@@ -93,6 +102,11 @@ def common_init(config_filepath: Optional[str]=None,
 
     global _tb_writer
     _tb_writer = _create_tb_writer(is_master)
+
+    global _atexit_reg
+    if not _atexit_reg:
+        atexit.register(on_app_exit)
+        _atexit_reg = True
 
     return conf
 

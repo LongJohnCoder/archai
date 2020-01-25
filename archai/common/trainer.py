@@ -39,7 +39,8 @@ class Trainer(EnforceOverrides):
         self.model = model
         self.device = device
         self._lossfn = utils.get_lossfn(conf_lossfn).to(device)
-        self._tester = Tester(conf_validation, model, device, aux_tower=aux_tower) \
+        self._tester = Tester(conf_validation, model, device,
+                              aux_tower=aux_tower, enable_tb=False) \
                         if conf_validation else None
         self._metrics = None
         self._amp = Amp(self._apex)

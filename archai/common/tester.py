@@ -16,7 +16,7 @@ class Tester(EnforceOverrides):
     """
 
     def __init__(self, conf_eval:Config, model:nn.Module, device,
-                 aux_tower:bool)->None:
+                 aux_tower:bool, enable_tb=True)->None:
         self._title = conf_eval['title']
         self._logger_freq = conf_eval['logger_freq']
         conf_lossfn = conf_eval['lossfn']
@@ -25,6 +25,7 @@ class Tester(EnforceOverrides):
         self.device = device
         self._aux_tower = aux_tower
         self._lossfn = utils.get_lossfn(conf_lossfn).to(device)
+        self._enable_tb = enable_tb
         self._metrics = None
 
     def test(self, test_dl: DataLoader)->Metrics:
@@ -92,5 +93,6 @@ class Tester(EnforceOverrides):
         metrics.post_step(x, y, logits, loss, steps)
 
     def _create_metrics(self)->Metrics:
-        return Metrics(self._title, logger_freq=self._logger_freq)
+        return Metrics(self._title, logger_freq=self._logger_freq,
+                       enable_tb=self._enable_tb)
 
