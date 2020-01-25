@@ -63,7 +63,7 @@ class Cell(nn.Module, ABC, EnforceOverrides):
     def alphaops(self)->Iterable[Op]:
         for node in self._dag:
             for edge in node:
-                yield edge.op
+                yield edge.op()
 
 
     @overrides

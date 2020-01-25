@@ -54,9 +54,11 @@ class XnasOp(Op):
         return self._avg_grad_meter.avg
 
     def update_alphas(self, eta:float):
-        # TODO: This will fail. Will find the actual dimensions at runtime and fix 
-        rewards = -self._avg_grad_meter * self._activs
-        self._alphas[0] = self._alphas[0] * torch.exp(eta * rewards)
+        grad_flat = torch.flatten(self._avg_grad_meter.avg)
+        rewards = torch.tensor([-torch.dot(grad_flat, torch.flatten(activ)) for activ in self._activs])
+        exprewards = torch.exp(eta * rewards).cuda()
+        # TODO: Will this remain registered?
+        self._alphas[0] = torch.mul(self._alphas[0], exprewards)
         # TODO: Implement the weak learner eviction
        
     def _save_grad(self):

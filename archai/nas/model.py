@@ -77,7 +77,8 @@ class Model(nn.Module):
 
     def alphaops(self)->Iterable[Op]:
         for cell in self._cells:
-            yield cell.alphaops
+            for op in cell.alphaops():
+                yield op
 
     @overrides
     def forward(self, x)->Tuple[Tensor, Optional[Tensor]]:

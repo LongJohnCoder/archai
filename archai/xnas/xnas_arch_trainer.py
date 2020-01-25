@@ -113,7 +113,7 @@ class _XnasOptimizer:
 
         # for each op in the model update alphas 
         for op in self._model.alphaops():
-            op.update_alphas()
+            op.update_alphas(self._alpha_lr)
 
             
 
