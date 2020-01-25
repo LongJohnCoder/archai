@@ -17,8 +17,9 @@ def train_test(conf_eval:Config):
     # endregion
 
     conf_trainer['validation']['freq']=1
-    conf_trainer['epochs'] = 600
-    conf_loader['batch'] = 128
+    conf_trainer['epochs'] = 10
+    conf_loader['train_batch'] = 512
+    conf_loader['test_batch'] = 4096
     conf_loader['cutout'] = 0
     conf_trainer['drop_path_prob'] = 0.0
     conf_trainer['grad_clip'] = 0.0

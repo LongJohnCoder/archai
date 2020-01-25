@@ -359,7 +359,7 @@ def full_path(path:str)->str:
 
 def setup_logging(filepath:Optional[str]=None,
                   name:Optional[str]=None, level=logging.INFO)->logging.Logger:
-    logger = logging.getLogger(name)
+    logger = logging.getLogger()
     logger.handlers.clear()
     logger.setLevel(level)
     ch = logging.StreamHandler()
