@@ -8,6 +8,11 @@ import yaml
 
 TItems = Union[Mapping, str]
 
+def _fmt(val:Any)->str:
+    if isinstance(val, float):
+        return f'{val:.4g}'
+    return str(val)
+
 class OrderedDictLogger:
     def __init__(self, filepath:Optional[str], logger:Optional[logging.Logger],
                  save_delay:Optional[float]=1.0) -> None:
@@ -20,7 +25,10 @@ class OrderedDictLogger:
         self._call_count = 0
         self._last_save = time.time()
 
-        atexit.register(self.save)
+        atexit.register(self.on_app_exit)
+
+    def debug(self, dict:TItems, level:Optional[int]=logging.DEBUG, exists_ok=False)->None:
+        self.info(dict, level, exists_ok)
 
     def warn(self, dict:TItems, level:Optional[int]=logging.WARN, exists_ok=False)->None:
         self.info(dict, level, exists_ok)
@@ -30,7 +38,7 @@ class OrderedDictLogger:
 
         if isinstance(dict, Mapping):
             self._update(dict, exists_ok)
-            msg = ', '.join(f'{k}={v}' for k, v in dict.items())
+            msg = ', '.join(f'{k}={_fmt(v)}' for k, v in dict.items())
         else:
             msg = dict
             key = '_warnings' if level==logging.WARN else '_messages'
@@ -54,6 +62,9 @@ class OrderedDictLogger:
         c = self._stack[-1]
         assert c is not None
         return c
+
+    def on_app_exit(self):
+        self.save()
 
     def save(self, filepath:Optional[str]=None)->None:
         filepath = filepath or self._filepath

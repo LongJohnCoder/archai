@@ -183,10 +183,6 @@ class Trainer(EnforceOverrides):
         logger = get_logger()
         steps = len(train_dl)
         self.model.train()
-        # TODO: advantage of doing at the start is that if schedule starts from 0
-        #       first epoch is not a waste. But then again, we lose first LR.
-        if self._sched and self._sched_on_epoch:
-            self._sched.step()
 
         logger.pushd('steps')
         for step, (x, y) in enumerate(train_dl):
@@ -218,6 +214,9 @@ class Trainer(EnforceOverrides):
 
             self.post_step(x, y, logits, loss, steps)
             logger.popd()
+
+        if self._sched and self._sched_on_epoch:
+            self._sched.step()
         logger.popd()
 
     def compute_loss(self, lossfn:Callable,

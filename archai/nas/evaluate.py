@@ -12,7 +12,7 @@ from . import nas_utils
 
 def eval_arch(conf_eval:Config, micro_builder:Optional[MicroBuilder]):
     logger = get_logger()
-    logger.pushd('eval')
+    logger.pushd('eval_arch')
 
     # region conf vars
     conf_loader       = conf_eval['loader']

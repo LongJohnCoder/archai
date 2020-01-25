@@ -173,7 +173,7 @@ def _setup_gpus():
     utils.setup_cuda(seed)
 
     if conf_common['detect_anomaly']:
-        logger.warn('set_detect_anomaly', True)
+        logger.warn({'set_detect_anomaly':True})
         torch.autograd.set_detect_anomaly(True)
 
     logger.info({'gpu_names': utils.cuda_device_names()})

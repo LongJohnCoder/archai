@@ -1,6 +1,6 @@
 import time
 import copy
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import pathlib
 import math
 import statistics
@@ -36,6 +36,7 @@ class Metrics:
     def _reset_run(self)->None:
         self.run_metrics = RunMetrics()
         self.global_step = -1
+        self._tb_path = get_logger().path()
 
     def pre_run(self, resuming:bool)->None:
         if not resuming:
@@ -48,7 +49,7 @@ class Metrics:
         # logging
         if self.logger_freq > 0:
             logger = get_logger()
-            logger.info({'resuming': resuming, 'run_info':self.run_info})
+            logger.debug({'resuming': resuming, 'run_info':self.run_info})
 
     def post_run(self)->None:
         self.run_metrics.post_run()
@@ -60,10 +61,16 @@ class Metrics:
                 logger.info({'epoch':self.run_metrics.epoch_time_avg(),
                             'step': self.run_metrics.step_time_avg(),
                             'run': self.run_metrics.duration()})
-            best_epoch = self.run_metrics.best_epoch()
-            with logger.pushd('best'):
-                logger.info({'epoch': best_epoch.index,
-                            'top1': best_epoch.top1.avg})
+
+            best_train, best_val = self.run_metrics.best_epoch()
+            with logger.pushd('best_train'):
+                logger.info({'epoch': best_train.index,
+                            'top1': best_train.top1.avg})
+
+            if best_val:
+                with logger.pushd('best_val'):
+                    logger.info({'epoch': best_val.index,
+                                'top1': best_val.val_metrics.top1.avg})
 
     def pre_step(self, x: Tensor, y: Tensor):
         self.run_metrics.cur_epoch().pre_step()
@@ -86,11 +93,11 @@ class Metrics:
                         'top5': epoch.top5.avg,
                         'loss': epoch.loss.avg})
         writer = get_tb_writer()
-        writer.add_scalar(f'{logger.path()}/loss',
+        writer.add_scalar(f'{self._tb_path}/train_steps/loss',
                             epoch.loss.avg, self.global_step)
-        writer.add_scalar(f'{logger.path()}/top1',
+        writer.add_scalar(f'{self._tb_path}/train_steps/top1',
                             epoch.top1.avg, self.global_step)
-        writer.add_scalar(f'{logger.path()}/top5',
+        writer.add_scalar(f'{self._tb_path}/train_steps/top5',
                             epoch.top5.avg, self.global_step)
 
     def pre_epoch(self, lr:float=math.nan)->None:
@@ -98,13 +105,16 @@ class Metrics:
         epoch.pre_epoch(lr)
         if lr is not None:
             logger, writer = get_logger(), get_tb_writer()
-            if self.logger_freq > 0:
+            if self.logger_freq > 0 and not math.isnan(lr):
                 logger.info({'start_lr': lr})
-            writer.add_scalar(f'{logger.path()}/lr', lr, self.global_step)
+            writer.add_scalar(f'{self._tb_path}/train_steps/lr', lr, self.global_step)
 
     def post_epoch(self, val_metrics:Optional['Metrics'], lr:float=math.nan):
         epoch = self.run_metrics.cur_epoch()
         epoch.post_epoch(val_metrics, lr)
+        test_epoch = None
+        if val_metrics:
+            test_epoch = val_metrics.run_metrics.epochs_metrics[0]
 
         if self.logger_freq > 0:
             logger = get_logger()
@@ -113,12 +123,26 @@ class Metrics:
                             'top5': epoch.top5.avg,
                             'loss': epoch.loss.avg,
                             'end_lr': lr})
-            if val_metrics:
-                test_epoch = val_metrics.run_metrics.epochs_metrics[0]
+            if test_epoch:
                 with logger.pushd('val'):
                     logger.info({'top1': test_epoch.top1.avg,
                                 'top5': test_epoch.top5.avg,
                                 'loss': test_epoch.loss.avg})
+
+        writer = get_tb_writer()
+        writer.add_scalar(f'{self._tb_path}/train_epochs/loss',
+                            epoch.loss.avg, epoch.index)
+        writer.add_scalar(f'{self._tb_path}/train_epochs/top1',
+                            epoch.top1.avg, epoch.index)
+        writer.add_scalar(f'{self._tb_path}/train_epochs/top5',
+                            epoch.top5.avg, epoch.index)
+        if test_epoch:
+            writer.add_scalar(f'{self._tb_path}/val_epochs/loss',
+                                test_epoch.loss.avg, epoch.index)
+            writer.add_scalar(f'{self._tb_path}/val_epochs/top1',
+                                test_epoch.top1.avg, epoch.index)
+            writer.add_scalar(f'{self._tb_path}/val_epochs/top5',
+                                test_epoch.top5.avg, epoch.index)
 
     def state_dict(self)->dict:
         d = utils.state_dict(self)
@@ -141,8 +165,7 @@ class Metrics:
 
     def cur_epoch(self)->'EpochMetrics':
         return self.run_metrics.cur_epoch()
-    def best_epoch(self)->'EpochMetrics':
-        return self.run_metrics.best_epoch()
+
 
 class Accumulator:
     # TODO: replace this with Metrics class
@@ -238,8 +261,12 @@ class RunMetrics:
     def cur_epoch(self)->EpochMetrics:
         return self.epochs_metrics[self.epoch]
 
-    def best_epoch(self)->EpochMetrics:
-        return max(self.epochs_metrics, key=lambda e:e.top1.avg)
+    def best_epoch(self)->Tuple[EpochMetrics, Optional[EpochMetrics]]:
+        best_train = max(self.epochs_metrics, key=lambda e:e.top1.avg)
+        best_val = max(self.epochs_metrics,
+            key=lambda e:e.val_metrics.top1.avg if e.val_metrics else -1)
+        best_val = best_val if best_val.val_metrics else None
+        return best_train, best_val
 
     def epoch_time_avg(self):
         return statistics.mean((e.duration() for e in self.epochs_metrics))

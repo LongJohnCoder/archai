@@ -48,7 +48,7 @@ def search_arch(conf_search:Config, micro_builder:MicroBuilder,
     found_model_desc = None
     assert iterations
     for search_iteration in range(start_iteration, iterations):
-        logger.pushd('iterations', search_iteration)
+        logger.pushd('iter', search_iteration)
         search_model_desc = _pretrained_model_desc(conf_pretrain, device,
                                                    search_model_desc)
 
@@ -68,7 +68,6 @@ def search_arch(conf_search:Config, micro_builder:MicroBuilder,
         arch_trainer = trainer_class(conf_train, model, device, checkpoint)
         train_metrics = arch_trainer.fit(train_dl, val_dl)
         train_metrics.save('search_train_metrics')
-
 
         # save found model
         search_model_desc = model.finalize(restore_device=False)
