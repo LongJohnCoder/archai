@@ -111,7 +111,7 @@ def get_dataloaders(dataroot:str, dataset:str,
         trainloader = torch.utils.data.DataLoader(trainset,
             batch_size=train_batch_size, shuffle=True if train_sampler is None else False,
             num_workers=train_workers, pin_memory=True,
-            sampler=train_sampler, drop_last=True)
+            sampler=train_sampler, drop_last=False) # TODO: original paper has this True
         if train_sampler is not None:
             validloader = torch.utils.data.DataLoader(trainset,
                 batch_size=train_batch_size, shuffle=False,
