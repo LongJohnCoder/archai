@@ -138,7 +138,7 @@ nas:
       epochs: 50
       # additional vals for the derived class
       plotsdir: '' # use default subfolder in logdir
-      l1_alphas: 0.0   # weight to be applied to sum(abs(alpahas)) to loss term
+      l1_alphas: 0.0   # weight to be applied to sum(abs(alphas)) to loss term
       lossfn:
         type: "CrossEntropyLoss"
       optimizer:

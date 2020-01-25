@@ -44,6 +44,14 @@
             "args": ["--no-eval", "--algos", "xnas"]
         },
         {
+            "name": "Xnas-E2E-Toy",
+            "type": "python",
+            "request": "launch",
+            "program": "${cwd}/scripts/main.py",
+            "console": "integratedTerminal",
+            "args": ["--algos", "xnas"]
+        },
+        {
             "name": "Petridish-Full",
             "type": "python",
             "request": "launch",
