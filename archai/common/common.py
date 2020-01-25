@@ -3,6 +3,7 @@ import numpy as np
 import os
 from typing import List, Iterable, Union, Optional
 import atexit
+import subprocess
 
 import yaml
 
@@ -98,7 +99,12 @@ def common_init(config_filepath: Optional[str]=None,
     if expdir:
         # copy net config to experiment folder for reference
         with open(os.path.join(expdir, 'full_config.yaml'), 'w') as f:
-            yaml.dump(conf, f, default_flow_style=False)
+            yaml.dump(conf, f)
+        if not utils.is_debugging():
+            sysinfo_filepath = os.path.join(expdir, 'sysinfo.txt')
+            subprocess.Popen([f'./sysinfo.sh "{expdir}" > "{sysinfo_filepath}"'],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            shell=True)
 
     global _tb_writer
     _tb_writer = _create_tb_writer(is_master)
