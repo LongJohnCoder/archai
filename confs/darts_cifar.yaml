@@ -85,7 +85,7 @@ nas:
       validation:
         title: "eval_test"
         logger_freq: 0
-        freq: 1000 # perform validation only every N epochs
+        freq: 5 # perform validation only every N epochs
         lossfn:
           type: "CrossEntropyLoss"
 
