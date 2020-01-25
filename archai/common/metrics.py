@@ -89,7 +89,7 @@ class Metrics:
 
         logger = get_logger()
         if self.logger_freq > 0 and \
-                (self.global_step % self.logger_freq == 0):
+                (self.global_step+1 % self.logger_freq == 0):
             logger.info({'top1': epoch.top1.avg,
                         'top5': epoch.top5.avg,
                         'loss': epoch.loss.avg})
@@ -109,7 +109,7 @@ class Metrics:
         if lr is not None:
             logger, writer = get_logger(), get_tb_writer()
             if self.logger_freq > 0 and not math.isnan(lr):
-                logger.info({'start_lr': lr})
+                logger.debug({'start_lr': lr})
             if self.enable_tb:
                 writer.add_scalar(f'{self._tb_path}/train_steps/lr',
                                   lr, self.global_step)

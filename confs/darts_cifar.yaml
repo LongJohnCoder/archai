@@ -84,7 +84,7 @@ nas:
         min_lr: 0.001 # min learning rate to se bet in eta_min param of scheduler
       validation:
         title: "eval_test"
-        logger_freq: 1000
+        logger_freq: 0
         freq: 1000 # perform validation only every N epochs
         lossfn:
           type: "CrossEntropyLoss"
