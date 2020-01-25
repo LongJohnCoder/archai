@@ -16,7 +16,7 @@ def train_test(conf_eval:Config):
     conf_trainer = conf_eval['trainer']
     # endregion
 
-    conf_trainer['epochs'] = 5
+    conf_trainer['epochs'] = 200
     conf_loader['batch'] = 128
     conf_loader['cutout'] = 0
     conf_trainer['drop_path_prob'] = 0.0
