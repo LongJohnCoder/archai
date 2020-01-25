@@ -187,11 +187,10 @@ class Trainer(EnforceOverrides):
 
         logger.pushd('steps')
         for step, (x, y) in enumerate(train_dl):
+            x, y = x.to(self.device, non_blocking=True), y.to(self.device, non_blocking=True)
+
             logger.pushd(step)
             assert self.model.training # derived class might alter the mode
-
-            # enable non-blocking on 2nd part so its ready when we get to it
-            x, y = x.to(self.device), y.to(self.device, non_blocking=True)
 
             self.pre_step(x, y)
 

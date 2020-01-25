@@ -51,12 +51,10 @@ class Tester(EnforceOverrides):
 
         with torch.no_grad(), logger.pushd('steps'):
             for step, (x, y) in enumerate(test_dl):
-                logger.pushd(step)
+                x, y = x.to(self.device, non_blocking=True), y.to(self.device, non_blocking=True)
 
                 assert not self.model.training # derived class might alter the mode
-
-                # enable non-blocking on 2nd part so its ready when we get to it
-                x, y = x.to(self.device), y.to(self.device, non_blocking=True)
+                logger.pushd(step)
 
                 self._pre_step(x, y, self._metrics)
                 logits = self.model(x)
