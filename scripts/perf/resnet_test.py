@@ -17,7 +17,7 @@ def train_test(conf_eval:Config):
     # endregion
 
     conf_trainer['validation']['freq']=1
-    conf_trainer['epochs'] = 200
+    conf_trainer['epochs'] = 600
     conf_loader['batch'] = 128
     conf_loader['cutout'] = 0
     conf_trainer['drop_path_prob'] = 0.0
@@ -25,7 +25,7 @@ def train_test(conf_eval:Config):
     conf_trainer['aux_weight'] = 0.0
 
     device = torch.device(conf_eval['device'])
-    Net = cifar10_models.resnet18
+    Net = cifar10_models.resnet34
     model = Net().to(device)
 
     # get data
