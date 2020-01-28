@@ -14,7 +14,7 @@ from ..common.config import Config
 from ..nas.arch_trainer import ArchTrainer
 from ..common import utils
 from ..nas.model import Model
-from ..common.check_point import CheckPoint
+from ..common.checkpoint import CheckPoint
 from ..common.common import get_logger
 
 
