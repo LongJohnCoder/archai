@@ -127,10 +127,8 @@ class ImageNet(torchvision.datasets.ImageFolder):
                 val_wnids = self._load_meta_file()[1]
                 prepare_val_folder(self.split_folder, val_wnids)
         else:
-            logger.info("download=True, but a folder '{}' already exist in "
-                   "the root directory. If you want to re-download or re-extract the "
-                   "archive, delete the folder.".format(self.split_folder))
-
+            logger.warn({'imagenet_download':
+                   f'dir "{self.split_folder}" already exist'})
 
     @property
     def meta_file(self):

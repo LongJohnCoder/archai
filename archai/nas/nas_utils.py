@@ -8,7 +8,7 @@ from .micro_builder import MicroBuilder
 from ..common.config import Config
 from .model import Model
 from ..common.common import get_logger
-from ..common.check_point import CheckPoint
+from ..common.checkpoint import CheckPoint
 
 def build_micro(model_desc, micro_builder: MicroBuilder, search_iteration:int)->None:
     if micro_builder:

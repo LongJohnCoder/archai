@@ -15,6 +15,7 @@ from ..common import data
 def search_arch(conf_search:Config, micro_builder:MicroBuilder,
                 trainer_class:Type[ArchTrainer])->None:
     logger = get_logger()
+    logger.pushd('search_arch')
 
     # region config vars
     conf_model_desc = conf_search['model_desc']
@@ -47,6 +48,7 @@ def search_arch(conf_search:Config, micro_builder:MicroBuilder,
     found_model_desc = None
     assert iterations
     for search_iteration in range(start_iteration, iterations):
+        logger.pushd('iter', search_iteration)
         search_model_desc = _pretrained_model_desc(conf_pretrain, device,
                                                    search_model_desc)
 
@@ -64,22 +66,17 @@ def search_arch(conf_search:Config, micro_builder:MicroBuilder,
 
         # search arch
         arch_trainer = trainer_class(conf_train, model, device, checkpoint)
-        arch_trainer.fit(train_dl, val_dl)
-
-        train_metrics, val_metrics = arch_trainer.get_metrics()
+        train_metrics = arch_trainer.fit(train_dl, val_dl)
         train_metrics.save('search_train_metrics')
-        if val_metrics:
-            val_metrics.save('search_val_metrics')
 
         # save found model
         search_model_desc = model.finalize(restore_device=False)
+        logger.popd()
 
     found_model_desc = search_model_desc
     save_path = found_model_desc.save(final_desc_filename)
-    if save_path:
-        logger.info(f"Best architecture saved in {save_path}")
-    else:
-        logger.info("Best architecture is not saved because file path config not set")
+    logger.info({'finalized_desc_path': save_path})
+    logger.popd()
 
 def _pretrained_model_desc(conf_pretrain:Config, device,
                            search_model_desc:ModelDesc)->ModelDesc:
@@ -100,15 +97,9 @@ def _pretrained_model_desc(conf_pretrain:Config, device,
         train_dl, _, test_dl = data.get_data(conf_loader)
         assert train_dl is not None and test_dl is not None
 
-        trainer = Trainer(conf_trainer, model, device,
-            check_point=None, aux_tower=True)
-        trainer.fit(train_dl, test_dl)
-
-        # save metrics
-        train_metrics, test_metrics = trainer.get_metrics()
+        trainer = Trainer(conf_trainer, model, device, checkpoint=None, aux_tower=True)
+        train_metrics = trainer.fit(train_dl, test_dl)
         train_metrics.save('search_pretrain_metrics')
-        if test_metrics:
-            test_metrics.save('search_pretrain_metrics')
 
         return model.finalize(restore_device=False)
     else:

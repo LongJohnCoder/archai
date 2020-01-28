@@ -14,14 +14,14 @@ from ..common.config import Config
 from ..nas.arch_trainer import ArchTrainer
 from ..common import utils
 from ..nas.model import Model
-from ..common.check_point import CheckPoint
+from ..common.checkpoint import CheckPoint
 from ..common.common import get_logger
 
 
 class BilevelArchTrainer(ArchTrainer):
     def __init__(self, conf_train: Config, model: Model, device,
-                 check_point:Optional[CheckPoint]) -> None:
-        super().__init__(conf_train, model, device, check_point)
+                 checkpoint:Optional[CheckPoint]) -> None:
+        super().__init__(conf_train, model, device, checkpoint)
 
         self._conf_w_optim = conf_train['optimizer']
         self._conf_w_lossfn = conf_train['lossfn']
@@ -48,6 +48,7 @@ class BilevelArchTrainer(ArchTrainer):
                                                 w_decay, self.model, lossfn)
         if resuming:
             self._bilevel_optim.load_state_dict(self.check_point['bilevel_optim'])
+
 
     @overrides
     def post_fit(self, train_dl:DataLoader, val_dl:Optional[DataLoader])->None:
@@ -89,6 +90,7 @@ class BilevelArchTrainer(ArchTrainer):
     def update_checkpoint(self, check_point:CheckPoint)->None:
         super().update_checkpoint(check_point)
         check_point['bilevel_optim'] = self._bilevel_optim.state_dict()
+
 
 class _BilevelOptimizer:
     def __init__(self, conf_alpha_optim:Config, w_momentum: float, w_decay: float,

@@ -55,7 +55,7 @@ nas:
       train_batch: 96
       train_workers: null # if null then gpu_count*4
       load_test: True # load test split of dataset
-      test_batch: 2048
+      test_batch: 4096
       test_workers: null # if null then gpu_count*4
       val_ratio: 0.0 #split portion for test set, 0 to 1
       val_fold: 0 #Fold number to use (0 to 4)
@@ -84,8 +84,8 @@ nas:
         min_lr: 0.001 # min learning rate to se bet in eta_min param of scheduler
       validation:
         title: "eval_test"
-        logger_freq: 1000
-        freq: 1000 # perform validation only every N epochs
+        logger_freq: 0
+        freq: 5 # perform validation only every N epochs
         lossfn:
           type: "CrossEntropyLoss"
 
@@ -121,7 +121,7 @@ nas:
       train_batch: 64
       train_workers: null # if null then gpu_count*4
       load_test: False # load test split of dataset
-      test_batch: 2048
+      test_batch: 4096
       test_workers: null # if null then gpu_count*4
       val_ratio: 0.5 #split portion for test set, 0 to 1
       val_fold: 0 #Fold number to use (0 to 4)
@@ -177,7 +177,7 @@ autoaug:
     train_batch: 64
     train_workers: null # if null then gpu_count*4
     load_test: True # load test split of dataset
-    test_batch: 2048
+    test_batch: 4096
     test_workers: null # if null then gpu_count*4
     val_ratio: 0.4 #split portion for test set, 0 to 1
     val_fold: 0 #Fold number to use (0 to 4)

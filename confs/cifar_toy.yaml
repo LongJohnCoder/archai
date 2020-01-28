@@ -1,7 +1,7 @@
 # use this as overriding config for quick compile testing
 
 common:
-  detect_anomaly: True # if True, PyTorch code will run 6X slower
+  detect_anomaly: false # if True, PyTorch code will run 6X slower
 
 dataset: &dataset
   max_batches: 10 # if >= 0 then only these many batches are generated (useful for debugging)

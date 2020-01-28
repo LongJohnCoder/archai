@@ -359,20 +359,19 @@ def full_path(path:str)->str:
 
 def setup_logging(filepath:Optional[str]=None,
                   name:Optional[str]=None, level=logging.INFO)->logging.Logger:
-    logger = logging.getLogger(name)
+    logger = logging.getLogger()
     logger.handlers.clear()
     logger.setLevel(level)
     ch = logging.StreamHandler()
     ch.setLevel(level)
-    formatter = logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s')
-    ch.setFormatter(formatter)
+    ch.setFormatter(logging.Formatter('%(asctime)s %(message)s', '%H:%M'))
     logger.addHandler(ch)
     logger.propagate = False # otherwise root logger prints things again
 
     if filepath:
         fh = logging.FileHandler(filename=full_path(filepath))
-        fh.setLevel(level)
-        fh.setFormatter(formatter)
+        fh.setLevel(logging.DEBUG)
+        fh.setFormatter(logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s'))
         logger.addHandler(fh)
     return logger
 
@@ -389,6 +388,11 @@ def setup_cuda(seed):
 
 def cuda_device_names()->str:
     return ', '.join([torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())])
+
+def fmt(val:Any)->str:
+    if isinstance(val, float):
+        return f'{val:.4g}'
+    return str(val)
 
 def append_csv_file(filepath:str, new_row:List[Tuple[str, Any]], delimiter='\t'):
     fieldnames, rows = [], []

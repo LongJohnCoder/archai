@@ -15,12 +15,12 @@ from ..nas.model import Model
 from ..nas.model_desc import ModelDesc
 from ..common.trainer import Trainer
 from ..nas.vis_model_desc import draw_model_desc
-from ..common.check_point import CheckPoint
+from ..common.checkpoint import CheckPoint
 
 class ArchTrainer(Trainer, EnforceOverrides):
     def __init__(self, conf_train: Config, model: Model, device,
-                 check_point:Optional[CheckPoint]) -> None:
-        super().__init__(conf_train, model, device, check_point, aux_tower=True)
+                 checkpoint:Optional[CheckPoint]) -> None:
+        super().__init__(conf_train, model, device, checkpoint, aux_tower=True)
 
         self._l1_alphas = conf_train['l1_alphas']
         self._plotsdir = common.expdir_abspath(conf_train['plotsdir'], True)
@@ -44,12 +44,14 @@ class ArchTrainer(Trainer, EnforceOverrides):
     def _draw_model(self) -> None:
         if not self._plotsdir:
             return
-        train_metrics, val_metrics = self.get_metrics()
-        if (val_metrics and val_metrics.is_best()) or \
-                (train_metrics and train_metrics.is_best()):
-
-            # log model_desc as a image
-            plot_filepath = os.path.join(
-                self._plotsdir, "EP{train_metrics.epoch:03d}")
-            draw_model_desc(self.model.finalize(), plot_filepath+"-normal",
-                            caption=f"Epoch {train_metrics.epoch}")
+        train_metrics = self.get_metrics()
+        if train_metrics:
+            best_train, best_val = train_metrics.run_metrics.best_epoch()
+            is_best = best_val and best_val==train_metrics.cur_epoch()
+            is_best = is_best or best_train==train_metrics.cur_epoch()
+            if is_best:
+                # log model_desc as a image
+                plot_filepath = os.path.join(
+                    self._plotsdir, "EP{train_metrics.epoch:03d}")
+                draw_model_desc(self.model.finalize(), plot_filepath+"-normal",
+                                caption=f"Epoch {train_metrics.epochs()-1}")

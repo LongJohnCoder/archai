@@ -129,9 +129,9 @@ class MacroBuilder(EnforceOverrides):
             return
 
         if len(cell_desc.nodes) > len(cell_template.nodes):
-            cell_desc.nodes = cell_desc.nodes[:len(cell_template.nodes)]
-            logger.warn('cell nodes trimmed, cell nodes={}, template nodes={}'.format(
+            logger.warn('cell nodes trimmed from {} to {} when applying template'.format(
                 len(cell_desc.nodes), len(cell_template.nodes)))
+            cell_desc.nodes = cell_desc.nodes[:len(cell_template.nodes)]
 
         # copy each template node to cell
         for node, template_node in zip(cell_desc.nodes, cell_template.nodes):

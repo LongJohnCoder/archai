@@ -1,7 +1,9 @@
 import time
 import copy
-from typing import Optional
+from typing import List, Optional, Tuple
 import pathlib
+import math
+import statistics
 
 from collections import defaultdict
 from torch import Tensor
@@ -12,127 +14,141 @@ from . import utils
 from .common import get_logger, get_tb_writer, expdir_abspath
 
 class Metrics:
-    """Record top1, top5, loss metrics, track best so far"""
+    """Record top1, top5, loss metrics, track best so far.
 
-    def __init__(self, title:str, epochs: int, logger_freq:int=10) -> None:
+    There are 3 levels of metrics:
+    1. Run level - these for the one call of 'fit', example, best top1
+    2. Epoch level - these are the averages maintained top1, top5, loss
+    3. Step level - these are for every step in epoch
+
+    The pre_run must be called before fit call which will reset all metrics. Similarly
+    pre_epoch will reset running averages and pre_step will reset step level metrics like average step time.
+
+    The post_step will simply update the running averages while post_epoch updates
+    best we have seen for each epoch.
+    """
+
+    def __init__(self, title:str, logger_freq:int=10, run_info={}, enable_tb=True) -> None:
         self.logger_freq = logger_freq
-        self.title, self.epochs = title, epochs
+        self.title, self.run_info, self.enable_tb = title, run_info, enable_tb
+        self._reset_run()
 
-        self.top1 = utils.AverageMeter()
-        self.top5 = utils.AverageMeter()
-        self.loss = utils.AverageMeter()
-        self.step_time = utils.AverageMeter()
-        self.epoch_time = utils.AverageMeter()
-        self.run_time = utils.AverageMeter()
-        self.custom = {} # user maintained metrics that would be saved/restored
-
-        self.reset()
-
-    def reset(self, epochs:Optional[int]=None)->None:
-        self.best_top1, self.best_epoch = 0.0, 0
-        self.epoch = 0
-        self.global_step = 0
-        if epochs is not None:
-            self.epochs = epochs
-
-        self.step_time.reset()
-        self.epoch_time.reset()
-        self._reset_epoch()
-
-    def _reset_epoch(self)->None:
-        self.top1.reset()
-        self.top5.reset()
-        self.loss.reset()
-        self.step = 0
+    def _reset_run(self)->None:
+        self.run_metrics = RunMetrics()
+        self.global_step = -1
+        self._tb_path = get_logger().path()
 
     def pre_run(self, resuming:bool)->None:
         if not resuming:
-            self.reset()
-            self._start_time = time.time()
-        assert hasattr(self, '_start_time')
-    def post_run(self)->None:
-        self._end_time = time.time()
-        self.run_time.update(self._end_time-self._start_time)
+            self._reset_run()
+            self.run_metrics.pre_run()
+        else:
+            # load_state_dict was called, checkpoint must be done after
+            # at least one epoch was completed
+            assert self.run_metrics.epoch >= 0
 
+        # logging
         if self.logger_freq > 0:
-            self.report_times()
-            self.report_best()
+            logger = get_logger()
+            logger.debug({'resuming': resuming, 'run_info':self.run_info})
+
+    def post_run(self)->None:
+        self.run_metrics.post_run()
+
+        # logging
+        if self.logger_freq > 0:
+            logger = get_logger()
+            with logger.pushd('timings'):
+                logger.info({'epoch':self.run_metrics.epoch_time_avg(),
+                            'step': self.run_metrics.step_time_avg(),
+                            'run': self.run_metrics.duration()})
+
+            best_train, best_val = self.run_metrics.best_epoch()
+            with logger.pushd('best_train'):
+                logger.info({'epoch': best_train.index,
+                            'top1': best_train.top1.avg})
+
+            if best_val:
+                with logger.pushd('best_val'):
+                    logger.info({'epoch': best_val.index,
+                                'top1': best_val.val_metrics.top1.avg})
+
     def pre_step(self, x: Tensor, y: Tensor):
-        self._step_start_time = time.time()
+        self.run_metrics.cur_epoch().pre_step()
+        self.global_step += 1
 
     def post_step(self, x: Tensor, y: Tensor, logits: Tensor,
                   loss: Tensor, steps: int) -> None:
-        self._step_end_time = time.time()
-        self.step_time.update(self._step_end_time-self._step_start_time)
-
         # update metrics after optimizer step
         batch_size = x.size(0)
-        prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
-        self.loss.update(loss.item(), batch_size)
-        self.top1.update(prec1.item(), batch_size)
-        self.top5.update(prec5.item(), batch_size)
-        self.step += 1
-        self.global_step += 1
+        top1, top5 = utils.accuracy(logits, y, topk=(1, 5))
 
-        self.report_cur(steps)
+        epoch = self.run_metrics.cur_epoch()
+        epoch.post_step(top1.item(), top5.item(),
+                                              loss.item(), batch_size)
 
-    def report_times(self)->None:
         logger = get_logger()
-        logger.info(f'[{self.title}]  Times: {self.epoch_time.avg:.1f} s/epoch, '
-                    f'{self.step_time.avg:.1f} s/step '
-                    f'{self.run_time.avg:.1f} s/run')
-
-    def increment_epoch(self):
-        self.epoch += 1
-
-    def report_cur(self, steps: int):
         if self.logger_freq > 0 and \
-                (self.step % self.logger_freq == 0 or \
-                 self.step == steps):
-            logger = get_logger()
-            logger.info(
-                f"[{self.title}] "
-                f"Epoch: [{self.epoch+1:3d}/{self.epochs}] "
-                f"Step {self.step:03d}/{steps:03d} "
-                f"Loss {self.loss.avg:.3f} "
-                f"Prec@(1,5) ({self.top1.avg:.1%},"
-                f" {self.top5.avg:.1%})")
+                (self.global_step+1 % self.logger_freq == 0):
+            logger.info({'top1': epoch.top1.avg,
+                        'top5': epoch.top5.avg,
+                        'loss': epoch.loss.avg})
 
-        writer = get_tb_writer()
-        writer.add_scalar(f'{self.title}/loss',
-                            self.loss.avg, self.global_step)
-        writer.add_scalar(f'{self.title}/top1',
-                            self.top1.avg, self.global_step)
-        writer.add_scalar(f'{self.title}/top5',
-                            self.top5.avg, self.global_step)
+        if self.enable_tb:
+            writer = get_tb_writer()
+            writer.add_scalar(f'{self._tb_path}/train_steps/loss',
+                                epoch.loss.avg, self.global_step)
+            writer.add_scalar(f'{self._tb_path}/train_steps/top1',
+                                epoch.top1.avg, self.global_step)
+            writer.add_scalar(f'{self._tb_path}/train_steps/top5',
+                                epoch.top5.avg, self.global_step)
 
-    def report_best(self):
-        if self.logger_freq > 0:
-            logger = get_logger()
-            logger.info(f"[{self.title}] "
-                        f"Final best top1={self.best_top1}, "
-                        f"epoch={self.best_epoch}")
-
-    def pre_epoch(self, lr:Optional[float]=None)->None:
-        self._reset_epoch()
-        self._epoch_start_time = time.time()
+    def pre_epoch(self, lr:float=math.nan)->None:
+        epoch = self.run_metrics.add_epoch()
+        epoch.pre_epoch(lr)
         if lr is not None:
             logger, writer = get_logger(), get_tb_writer()
-            if self.logger_freq > 0:
-                logger.info(f"[{self.title}] Epoch: {self.epoch+1} LR {lr}")
-            writer.add_scalar(f'{self.title}/lr', lr, self.global_step)
+            if self.logger_freq > 0 and not math.isnan(lr):
+                logger.debug({'start_lr': lr})
+            if self.enable_tb:
+                writer.add_scalar(f'{self._tb_path}/train_steps/lr',
+                                  lr, self.global_step)
 
-    def post_epoch(self):
-        self._epoch_end_time = time.time()
-        self.epoch_time.update(self._epoch_end_time-self._epoch_start_time)
-        self.increment_epoch()
+    def post_epoch(self, val_metrics:Optional['Metrics'], lr:float=math.nan):
+        epoch = self.run_metrics.cur_epoch()
+        epoch.post_epoch(val_metrics, lr)
+        test_epoch = None
+        if val_metrics:
+            test_epoch = val_metrics.run_metrics.epochs_metrics[0]
 
-        if self.best_top1 < self.top1.avg:
-            self.best_epoch = self.epoch
-            self.best_top1 = self.top1.avg
+        if self.logger_freq > 0:
+            logger = get_logger()
+            with logger.pushd('train'):
+                logger.info({'top1': epoch.top1.avg,
+                            'top5': epoch.top5.avg,
+                            'loss': epoch.loss.avg,
+                            'end_lr': lr})
+            if test_epoch:
+                with logger.pushd('val'):
+                    logger.info({'top1': test_epoch.top1.avg,
+                                'top5': test_epoch.top5.avg,
+                                'loss': test_epoch.loss.avg})
 
-    def is_best(self) -> bool:
-        return self.epoch == self.best_epoch
+        if self.enable_tb:
+            writer = get_tb_writer()
+            writer.add_scalar(f'{self._tb_path}/train_epochs/loss',
+                                epoch.loss.avg, epoch.index)
+            writer.add_scalar(f'{self._tb_path}/train_epochs/top1',
+                                epoch.top1.avg, epoch.index)
+            writer.add_scalar(f'{self._tb_path}/train_epochs/top5',
+                                epoch.top5.avg, epoch.index)
+            if test_epoch:
+                writer.add_scalar(f'{self._tb_path}/val_epochs/loss',
+                                    test_epoch.loss.avg, epoch.index)
+                writer.add_scalar(f'{self._tb_path}/val_epochs/top1',
+                                    test_epoch.top1.avg, epoch.index)
+                writer.add_scalar(f'{self._tb_path}/val_epochs/top5',
+                                    test_epoch.top5.avg, epoch.index)
 
     def state_dict(self)->dict:
         d = utils.state_dict(self)
@@ -149,6 +165,13 @@ class Metrics:
                 save_path += '.yaml'
             pathlib.Path(save_path).write_text(yaml.dump(self))
         return save_path
+
+    def epochs(self)->int:
+        return len(self.run_metrics.epochs_metrics)
+
+    def cur_epoch(self)->'EpochMetrics':
+        return self.run_metrics.cur_epoch()
+
 
 class Accumulator:
     # TODO: replace this with Metrics class
@@ -188,3 +211,73 @@ class Accumulator:
             else:
                 newone[key] = value / other
         return newone
+
+class EpochMetrics:
+    def __init__(self, index:int) -> None:
+        self.index = index
+        self.top1 = utils.AverageMeter()
+        self.top5 = utils.AverageMeter()
+        self.loss = utils.AverageMeter()
+        self.step_time = utils.AverageMeter()
+        self.start_time = math.nan
+        self.end_time = math.nan
+        self.step = -1
+        self.start_lr = math.nan
+        self.end_lr = math.nan
+        self.val_metrics:Optional[EpochMetrics] = None
+
+    def pre_step(self):
+        self._step_start_time = time.time()
+        self.step += 1
+    def post_step(self, top1:float, top5:float, loss:float, batch:int):
+        self.step_time.update(time.time() - self._step_start_time)
+        self.top1.update(top1, batch)
+        self.top5.update(top5, batch)
+        self.loss.update(loss, batch)
+
+    def pre_epoch(self, lr:float):
+        self.start_time = time.time()
+        self.start_lr = lr
+    def post_epoch(self, val_metrics:Optional[Metrics], lr:float):
+        self.end_time = time.time()
+        self.end_lr = lr
+        self.val_metrics = val_metrics.run_metrics.epochs_metrics[-1] \
+                                if val_metrics is not None else None
+    def duration(self):
+        return self.end_time-self.start_time
+
+class RunMetrics:
+    def __init__(self) -> None:
+        self.epochs_metrics:List[EpochMetrics] = []
+        self.start_time = math.nan
+        self.end_time = math.nan
+        self.epoch = -1
+
+    def pre_run(self):
+        self.start_time = time.time()
+    def post_run(self):
+        self.end_time = time.time()
+
+    def add_epoch(self)->EpochMetrics:
+        self.epoch = len(self.epochs_metrics)
+        epoch_metrics = EpochMetrics(self.epoch)
+        self.epochs_metrics.append(epoch_metrics)
+        return epoch_metrics
+
+    def cur_epoch(self)->EpochMetrics:
+        return self.epochs_metrics[self.epoch]
+
+    def best_epoch(self)->Tuple[EpochMetrics, Optional[EpochMetrics]]:
+        best_train = max(self.epochs_metrics, key=lambda e:e.top1.avg)
+        best_val = max(self.epochs_metrics,
+            key=lambda e:e.val_metrics.top1.avg if e.val_metrics else -1)
+        best_val = best_val if best_val.val_metrics else None
+        return best_train, best_val
+
+    def epoch_time_avg(self):
+        return statistics.mean((e.duration() for e in self.epochs_metrics))
+    def step_time_avg(self):
+        return statistics.mean((e.step_time.avg for e in self.epochs_metrics))
+
+    def duration(self):
+        return self.end_time-self.start_time
