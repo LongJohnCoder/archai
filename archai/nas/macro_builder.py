@@ -60,7 +60,7 @@ class MacroBuilder(EnforceOverrides):
         else:
             conv_params = stem1_op.params['conv']
 
-        pool_op = OpDesc(self.model_pool_op,
+        pool_op = OpDesc(self.model_post_op,
                          params={'conv': conv_params}, in_len=1, trainables=None)
 
         return ModelDesc(stem0_op, stem1_op, pool_op, self.ds_ch,
