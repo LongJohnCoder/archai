@@ -76,6 +76,7 @@ class MacroBuilder(EnforceOverrides):
         pp_ch_out, p_ch_out, ch_out = stem_ch_out, stem_ch_out, self.init_ch_out
 
         first_normal, first_reduction = -1, -1
+        assert self.n_cells > 0 and self.n_nodes > 0 # although 0 edges are allowed
         for ci in range(self.n_cells):
             # find cell type and output channels for this cell
             # also update if this is our first cell from which alphas will be shared

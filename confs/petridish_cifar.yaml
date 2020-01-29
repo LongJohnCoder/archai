@@ -12,6 +12,7 @@ nas:
   search:
     iterations: 4
     model_desc:
+      n_nodes: 1
       cell_post_op: 'channel_adjust'
     #   n_cells: 3 # as per paper
     trainer:
