@@ -109,3 +109,14 @@ logger.begin_sec('epochs')
 longer.end_sec()
 
 ```
+
+
+## Cells and Nodes
+Darts Model
+    ConvBN
+    Cell
+        ReLUSepConv/2BN if reduction else ReLUSepConvBN
+        sum for each node
+        concate channels for all nodes
+    AdaptiveAvgPool
+    Linear

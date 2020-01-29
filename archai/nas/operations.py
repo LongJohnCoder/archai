@@ -290,7 +290,7 @@ class Zero(Op):
 
 class FactorizedReduce(Op):
     """
-    reduce feature maps height/width by 4X while keeping channel same using two 1x1 convs, each with stride=2.
+    reduce feature maps height/width by 2X while doubling channels using two 1x1 convs, each with stride=2.
     """
     # TODO: modify to take number of nodes in reduction cells where stride 2 was applied (currently only first two input nodes)
 
