@@ -9,7 +9,7 @@ def test_darts_zero_model():
     model_desc = conf_search['model_desc']
 
     macro_builder = MacroBuilder(model_desc, aux_tower=False)
-    model_desc = macro_builder.model_desc()
+    model_desc = macro_builder.build()
     m = Model(model_desc, False, True)
     y, aux = m(torch.rand((1, 3, 32, 32)))
     assert isinstance(y, torch.Tensor) and y.shape==(1,10) and aux is None
@@ -20,7 +20,7 @@ def test_petridish_zero_model():
     model_desc = conf_search['model_desc']
 
     macro_builder = MacroBuilder(model_desc, aux_tower=False)
-    model_desc = macro_builder.model_desc()
+    model_desc = macro_builder.build()
     m = Model(model_desc, False, True)
     y, aux = m(torch.rand((1, 3, 32, 32)))
     assert isinstance(y, torch.Tensor) and y.shape==(1,10) and aux is None

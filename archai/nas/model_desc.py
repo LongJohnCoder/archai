@@ -89,6 +89,7 @@ class CellDesc:
             alphas_from:int, max_final_edges:int, cell_post_op:str)->None:
         assert s0_op.params['conv'].ch_out == s1_op.params['conv'].ch_out
         assert s0_op.params['conv'].ch_out == node_ch_out
+        assert out_nodes <= len(nodes) and out_nodes > 0
 
         self.cell_type = cell_type
         self.index = index

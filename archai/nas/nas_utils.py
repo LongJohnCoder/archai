@@ -20,7 +20,7 @@ def create_macro_desc(conf_model_desc: Config, aux_tower:bool,
     builder = MacroBuilder(conf_model_desc,
                             aux_tower=aux_tower,
                             template=template_model_desc)
-    model_desc = builder.model_desc()
+    model_desc = builder.build()
     return model_desc
 
 

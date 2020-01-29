@@ -14,15 +14,5 @@ nas:
     model_desc:
       n_nodes: 1
       cell_post_op: 'channel_adjust'
-    #   n_cells: 3 # as per paper
     trainer:
       l1_alphas:  0.001   # as per paper
-      #epochs: 1 # as per paper
-      # lr_schedule:
-      #   min_lr: 0.0 # as per paper
-    # loader:
-    #   batch: 32 # as per paper
-  # eval:
-  #   model_desc:
-  #     n_cells: 6 # as per paper
-  #     init_ch_out: 32 # as per paper

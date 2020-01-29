@@ -5,6 +5,9 @@
 - Macro builder will add auxtowers in eval
 - DagEdge will apply droppath in eval
 - BatchNorms will be affine in eval
+- 0 cell models are valid
+- if cell is present, it must have at lease out_nodes
+- Nodes may not have any edge
 
 ## Search
 

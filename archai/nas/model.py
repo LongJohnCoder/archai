@@ -106,6 +106,8 @@ class Model(nn.Module):
         return next(self.parameters()).device.type
 
     def finalize(self, to_cpu=True, restore_device=True)->ModelDesc:
+        # move model to CPU before finalize because each op will serialize
+        # its parameters and we don't want copy of these parameters lying on GPU
         original = self.device_type()
         if to_cpu:
             self.cpu()

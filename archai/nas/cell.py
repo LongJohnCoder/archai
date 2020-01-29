@@ -28,6 +28,7 @@ class Cell(nn.Module, ABC, EnforceOverrides):
             alphas_cell=alphas_cell)
 
         ch_out_sum = desc.node_ch_out * min(desc.out_nodes, len(desc.nodes))
+
         post_op_desc =  OpDesc(desc.cell_post_op,
             { 'conv': ConvMacroParams(ch_out_sum, desc.cell_ch_out)},
             in_len=1, trainables=None, children=None)
@@ -82,7 +83,7 @@ class Cell(nn.Module, ABC, EnforceOverrides):
                 o = sum(edge(states) for edge in node)
             else:
                 # support zero edges node by assuming zero op from s1
-                o = states[1] * 0.0
+                o = states[-1] + 0.0
             states.append(o)
 
         # TODO: Below assumes same shape except for channels but this won't
