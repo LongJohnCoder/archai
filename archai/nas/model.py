@@ -82,24 +82,6 @@ class Model(nn.Module):
 
     @overrides
     def forward(self, x)->Tuple[Tensor, Optional[Tensor]]:
-        """
-        Runs x through cells with alphas, applies final pooling, send through
-            FCs and returns logits.
-
-        in: torch.Size([3, 3, 32, 32])
-        stem: torch.Size([3, 48, 32, 32])
-        cell: 0 torch.Size([3, 64, 32, 32]) False
-        cell: 1 torch.Size([3, 64, 32, 32]) False
-        cell: 2 torch.Size([3, 128, 16, 16]) True
-        cell: 3 torch.Size([3, 128, 16, 16]) False
-        cell: 4 torch.Size([3, 128, 16, 16]) False
-        cell: 5 torch.Size([3, 256, 8, 8]) True
-        cell: 6 torch.Size([3, 256, 8, 8]) False
-        cell: 7 torch.Size([3, 256, 8, 8]) False
-        pool:   torch.Size([16, 256, 1, 1])
-        linear: [b, 10]
-        """
-
         # TODO: original code has slighly different way of applying stems
         s0 = self._stem0_op(x)
         s1 = self._stem1_op(x)

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from overrides import overrides, EnforceOverrides
 
 import torch
-from torch import nn
+from torch import nn, tensor
 
 from ..common.common import get_logger
 from .dag_edge import DagEdge
@@ -41,7 +41,7 @@ class Cell(nn.Module, ABC, EnforceOverrides):
         for i, node_desc in enumerate(nodes_desc):
             edges:nn.ModuleList = nn.ModuleList()
             dag.append(edges)
-            assert len(node_desc.edges) > 0
+            # assert len(node_desc.edges) > 0
             for j, edge_desc in enumerate(node_desc.edges):
                 edges.append(DagEdge(edge_desc,
                     affine=affine, droppath=droppath,
@@ -78,7 +78,11 @@ class Cell(nn.Module, ABC, EnforceOverrides):
             # TODO: Current assumption is that each edge has k channel
             #   output so node output is k channel as well
             #   This won't allow for arbitrary edges.
-            o = sum(edge(states) for edge in node)
+            if len(node):
+                o = sum(edge(states) for edge in node)
+            else:
+                # support zero edges node by assuming zero op from s1
+                o = states[1] * 0.0
             states.append(o)
 
         # TODO: Below assumes same shape except for channels but this won't
