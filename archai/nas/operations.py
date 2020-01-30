@@ -33,7 +33,7 @@ _ops_factory:Dict[str, Callable] = {
     'none':             lambda op_desc, alphas, affine:
                             Zero(op_desc),
     'identity':         lambda op_desc, alphas, affine:
-                            Identity(),
+                            Identity(op_desc),
     'sep_conv_7x7':     lambda op_desc, alphas, affine:
                             SepConv(op_desc, 7, 3, affine),
     'conv_7x1_1x7':     lambda op_desc, alphas, affine:
@@ -146,7 +146,7 @@ class SkipConnect(Op):
         super().__init__()
 
         stride = op_desc.params['stride']
-        self._op = Identity() if stride == 1 \
+        self._op = Identity(op_desc) if stride == 1 \
                               else FactorizedReduce(op_desc, affine)
 
     @overrides
@@ -262,8 +262,11 @@ class SepConv(Op):
 
 
 class Identity(Op):
-    def __init__(self):
+    def __init__(self, op_desc:OpDesc):
         super().__init__()
+        stride, conv_params = op_desc.params['stride'], op_desc.params['conv']
+        assert stride == 1
+        assert conv_params.ch_in == conv_params.ch_out
 
     @overrides
     def forward(self, x):

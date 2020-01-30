@@ -9,7 +9,7 @@ from torch import Tensor, nn
 from overrides import overrides
 
 from ..nas.model_desc import ConvMacroParams, OpDesc
-from ..nas.operations import Op, FactorizedReduce
+from ..nas.operations import Identity, Op, FactorizedReduce
 
 
 class StopForward(Op):
@@ -59,6 +59,11 @@ class StopGradientReduction(Op):
     def forward(self, x):
         return self._op(x)
 
+class TempIdentityOp(Identity):
+    def __init__(self, op_desc) -> None:
+        super().__init__(op_desc)
+    def forward(self, x):
+        return x
 
 class PetridishOp(Op):
     PRIMITIVES = [

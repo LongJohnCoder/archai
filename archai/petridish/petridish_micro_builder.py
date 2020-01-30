@@ -4,7 +4,7 @@ from  ..nas.model_desc import ModelDesc, CellDesc, CellDesc, NodeDesc, OpDesc, \
                               EdgeDesc, CellType
 from ..nas.micro_builder import MicroBuilder
 from ..nas.operations import Op
-from .petridish_op import PetridishOp, PetridishFinalOp
+from .petridish_op import PetridishOp, PetridishFinalOp, TempIdentityOp
 
 
 class PetridishMicroBuilder(MicroBuilder):
@@ -19,7 +19,9 @@ class PetridishMicroBuilder(MicroBuilder):
         Op.register_op('petridish_final_op',
                     lambda op_desc, alphas, affine:
                         PetridishFinalOp(op_desc, affine))
-
+        Op.register_op('temp_identity_op',
+                    lambda op_desc, alphas, affine:
+                        TempIdentityOp(op_desc))
 
     @overrides
     def build(self, model_desc:ModelDesc, search_iteration:int)->None:
@@ -29,18 +31,17 @@ class PetridishMicroBuilder(MicroBuilder):
     def _build_cell(self, cell_desc:CellDesc, search_iteration:int)->None:
         reduction = (cell_desc.cell_type==CellType.Reduction)
 
-        # remove all empty nodes
-        for i in reversed(range(len(cell_desc.nodes))):
+        # add identity op for all empty nodes after search_iteration
+        for i in range(search_iteration+1, len(cell_desc.nodes)):
             if len(cell_desc.nodes[i].edges)==0:
-                cell_desc.nodes.pop(i)
+                op_desc = OpDesc('temp_identity_op',
+                    params={'conv': cell_desc.conv_params},
+                    in_len=1, trainables=None, children=None)
+                edge = EdgeDesc(op_desc, index=0, input_ids=[i-1])
+                cell_desc.nodes[i].edges.append(edge)
 
         # for each search iteration i, we will operate on node i
-        # cell falls short of i-th node, then add it
-        if len(cell_desc.nodes) == search_iteration:
-            cell_desc.nodes.append(NodeDesc(edges=[]))
-
-        # if we don't have node to operate, then it's no go
-        assert len(cell_desc.nodes) >= search_iteration+1
+        node = cell_desc.nodes[search_iteration]
 
         # At each iteration i we pick the node i and add petridish op to it
         # NOTE: Where is it enforced that the cell already has 1 node. How is that node created?
@@ -53,8 +54,14 @@ class PetridishMicroBuilder(MicroBuilder):
                                 '_strides':[2 if reduction and j < 2 else 1 \
                                            for j in input_ids],
                             }, in_len=len(input_ids), trainables=None, children=None)
-        # add our op to last node
-        node = cell_desc.nodes[search_iteration]
-        edge = EdgeDesc(op_desc, index=len(node.edges),
-                        input_ids=input_ids)
-        node.edges.append(edge)
+        edge = EdgeDesc(op_desc, index=len(node.edges), input_ids=input_ids)
+
+        # overwrite previously added temp identity operator if any
+        id_edges = [(i, edge) for i, edge in enumerate(node.edges)
+                    if edge.op_desc.name == 'temp_identity_op']
+        assert len(id_edges) <= 1
+        if len(id_edges):
+            node.edges[id_edges[0][0]] = edge
+        else:
+            node.edges.append(edge)
+
