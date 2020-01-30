@@ -93,14 +93,17 @@ class CellDesc:
 
         self.cell_type = cell_type
         self.index = index
-        self.nodes = nodes
         self.s0_op, self.s1_op = s0_op, s1_op
-        self.out_nodes, self.node_ch_out = out_nodes, node_ch_out
         self.alphas_from = alphas_from # cell index with which we share alphas
         self.max_final_edges = max_final_edges
+        self.cell_post_op = cell_post_op
+
+        self.nodes = nodes
+
+        self.out_nodes = out_nodes
+        self.node_ch_out = node_ch_out
         self.cell_ch_out = out_nodes * node_ch_out
         self.conv_params = ConvMacroParams(node_ch_out, node_ch_out)
-        self.cell_post_op = cell_post_op
 
     def all_empty(self)->bool:
         return len(self.nodes)==0 or all((len(n.edges)==0 for n in self.nodes))
