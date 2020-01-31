@@ -12,7 +12,7 @@ nas:
     resume: False # ignore checkpoint file if it exist
     model_desc:
       n_cells: 3 # number of cells
-      n_nodes: 3 # number of nodes in a cell
+      n_nodes: 4 # number of nodes in a cell
       out_nodes: 2 # last n nodes to concate output from
     loader:
       train_batch: 32
@@ -26,7 +26,7 @@ nas:
     checkpoint: null
     model_desc:
       n_cells: 3 # number of cells
-      n_nodes: 3 # number of nodes in a cell
+      n_nodes: 4 # number of nodes in a cell
       out_nodes: 2 # last n nodes to concate output from
     loader:
       train_batch: 32
