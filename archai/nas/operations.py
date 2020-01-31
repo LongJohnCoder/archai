@@ -1,12 +1,12 @@
 from argparse import ArgumentError
-from typing import Callable, Iterable, Mapping, Tuple, Dict, Optional
-from abc import ABC
+from typing import Callable, Iterable, List, Mapping, Tuple, Dict, Optional
+from abc import ABC, abstractmethod
 import copy
 
 from overrides import overrides, EnforceOverrides
 
 import torch
-from torch import nn, Tensor, strided
+from torch import affine_grid_generator, nn, Tensor, strided
 
 from ..common import utils
 from .model_desc import OpDesc, ConvMacroParams
@@ -52,8 +52,10 @@ _ops_factory:Dict[str, Callable] = {
                             PoolCifar(),
     'pool_imagenet':    lambda op_desc, alphas, affine:
                             PoolImagenet(),
-    'channel_adjust':   lambda op_desc, alphas, affine:
-                            ChannelAdjust(op_desc, affine)
+    'concate_channels':   lambda op_desc, alphas, affine:
+                            ConcateChannelsOp(op_desc, affine),
+    'proj_channels':   lambda op_desc, alphas, affine:
+                            ProjectChannelsOp(op_desc, affine)
 }
 
 class Op(nn.Module, ABC, EnforceOverrides):
@@ -424,27 +426,52 @@ class PoolCifar(Op):
     def can_drop_path(self)->bool:
         return False
 
-class ChannelAdjust(Op):
-    def __init__(self, op_desc, affine:bool)->None:
+class MergeOp(Op, ABC):
+    def __init__(self, op_desc:OpDesc, affine:bool)->None:
         super().__init__()
 
         conv_params:ConvMacroParams = op_desc.params['conv']
-        ch_in = conv_params.ch_in
-        ch_out = conv_params.ch_out
-
-        self._op = nn.Sequential(
-            nn.Conv2d(ch_in, ch_out, 1, # 1x1 conv
-                    stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(ch_out, affine=affine)
-        )
+        self.out_nodes = op_desc.params['out_nodes']
+        self.node_ch_out:int = op_desc.params['node_ch_out']
+        self.op_ch_out:Optional[int] = op_desc.params['op_ch_out']
 
     @overrides
-    def forward(self, x):
-        return self._op(x)
+    def forward(self, states:List[torch.Tensor]):
+        raise NotImplementedError()
 
     @overrides
     def can_drop_path(self)->bool:
         return False
+
+class ConcateChannelsOp(MergeOp):
+    def __init__(self, op_desc:OpDesc, affine:bool)->None:
+        super().__init__(op_desc, affine)
+        assert self.op_ch_out is None or \
+               self.op_ch_out == self.out_nodes * self.node_ch_out
+
+    @overrides
+    def forward(self, states:List[torch.Tensor]):
+        return torch.cat(states, dim=1)
+
+class ProjectChannelsOp(MergeOp):
+    def __init__(self, op_desc:OpDesc, affine:bool)->None:
+        super().__init__(op_desc, affine)
+
+        if self.op_ch_out is None:
+            self.op_ch_out = self.node_ch_out
+
+        self._op = nn.Sequential(
+            nn.Conv2d(self.out_nodes * self.node_ch_out, # concatinated states as in
+                    self.op_ch_out,
+                    1, # 1x1 conv
+                    stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(self.op_ch_out, affine=affine)
+        )
+
+    @overrides
+    def forward(self, states:List[torch.Tensor]):
+        concatenated = torch.cat(states, dim=1)
+        return self._op(concatenated)
 
 
 class DropPath_(nn.Module):

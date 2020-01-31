@@ -23,14 +23,19 @@ class Cell(nn.Module, ABC, EnforceOverrides):
         self._preprocess0 = Op.create(desc.s0_op, affine=affine)
         self._preprocess1 = Op.create(desc.s1_op, affine=affine)
 
-        self._dag =  Cell._create_dag(desc.nodes,
+        self._dag =  Cell._create_dag(desc.nodes(),
             affine=affine, droppath=droppath,
             alphas_cell=alphas_cell)
 
-        ch_out_sum = desc.node_ch_out * min(desc.out_nodes, len(desc.nodes))
+        ch_out_sum = desc.node_ch_out * min(desc.out_nodes, len(desc.nodes()))
 
         post_op_desc =  OpDesc(desc.cell_post_op,
-            { 'conv': ConvMacroParams(ch_out_sum, desc.cell_ch_out)},
+            {
+                'conv': ConvMacroParams(ch_out_sum, desc.cell_ch_out),
+                'out_nodes': desc.out_nodes,
+                'node_ch_out': desc.node_ch_out,
+                'op_ch_out': desc.cell_ch_out
+            },
             in_len=1, trainables=None, children=None)
         self._post_op = Op.create(post_op_desc, affine=affine)
 
@@ -88,8 +93,7 @@ class Cell(nn.Module, ABC, EnforceOverrides):
 
         # TODO: Below assumes same shape except for channels but this won't
         #   happen for max pool etc shapes? Also, remove hard coded 2.
-        concatinated = torch.cat(states[2:][-self.desc.out_nodes:], dim=1)
-        return self._post_op(concatinated)
+        return self._post_op(states[-self.desc.out_nodes:])
 
     def finalize(self)->CellDesc:
         nodes_desc:List[NodeDesc] = []
@@ -108,5 +112,6 @@ class Cell(nn.Module, ABC, EnforceOverrides):
             nodes_desc.append(NodeDesc(edge_descs))
 
         res = deepcopy(self.desc)
-        res.nodes = nodes_desc
+        res.reset_nodes(nodes_desc, res.out_nodes, res.node_ch_out,
+                        res.cell_post_op) # everything else remains same for the cell
         return res

@@ -36,7 +36,7 @@ class RandomMicroBuilder(MicroBuilder):
         assert search_iteration==0, 'Multiple iterations for random search is not supported'
 
         # create random op sets for two cell types
-        n_nodes = len(model_desc.cell_descs[0].nodes)
+        n_nodes = len(model_desc.cell_descs[0].nodes())
         max_edges = 2
         normal_ops, reduction_ops = RandOps(n_nodes, max_edges), RandOps(n_nodes, max_edges)
 
@@ -52,11 +52,11 @@ class RandomMicroBuilder(MicroBuilder):
             self._build_cell(cell_desc, rand_ops)
 
     def _build_cell(self, cell_desc:CellDesc, rand_ops:RandOps)->None:
-        assert len(cell_desc.nodes) == len(rand_ops.ops_and_ins)
+        assert len(cell_desc.nodes()) == len(rand_ops.ops_and_ins)
         reduction = (cell_desc.cell_type==CellType.Reduction)
 
         # Add random op for each edge
-        for node, (op_names, to_states) in zip(cell_desc.nodes, rand_ops.ops_and_ins):
+        for node, (op_names, to_states) in zip(cell_desc.nodes(), rand_ops.ops_and_ins):
             for op_name, to_state in zip(op_names, to_states):
                 op_desc = OpDesc(op_name,
                                     params={

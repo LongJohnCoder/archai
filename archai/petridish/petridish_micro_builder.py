@@ -1,6 +1,6 @@
 from overrides import overrides
 
-from  ..nas.model_desc import ModelDesc, CellDesc, CellDesc, NodeDesc, OpDesc, \
+from  ..nas.model_desc import ModelDesc, CellDesc, OpDesc, \
                               EdgeDesc, CellType
 from ..nas.micro_builder import MicroBuilder
 from ..nas.operations import Op
@@ -24,6 +24,18 @@ class PetridishMicroBuilder(MicroBuilder):
                         TempIdentityOp(op_desc))
 
     @overrides
+    def seed(self, model_desc:ModelDesc)->None:
+        for cell_desc in model_desc.cell_descs:
+            # add identity op for all empty nodes after search_iteration
+            for i in range(len(cell_desc.nodes())):
+                if len(cell_desc.nodes()[i].edges)==0:
+                    op_desc = OpDesc('temp_identity_op',
+                        params={'conv': cell_desc.conv_params},
+                        in_len=1, trainables=None, children=None)
+                    edge = EdgeDesc(op_desc, index=0, input_ids=[i-1])
+                    cell_desc.nodes()[i].edges.append(edge)
+
+    @overrides
     def build(self, model_desc:ModelDesc, search_iteration:int)->None:
         for cell_desc in model_desc.cell_descs:
             self._build_cell(cell_desc, search_iteration)
@@ -31,17 +43,8 @@ class PetridishMicroBuilder(MicroBuilder):
     def _build_cell(self, cell_desc:CellDesc, search_iteration:int)->None:
         reduction = (cell_desc.cell_type==CellType.Reduction)
 
-        # add identity op for all empty nodes after search_iteration
-        for i in range(search_iteration+1, len(cell_desc.nodes)):
-            if len(cell_desc.nodes[i].edges)==0:
-                op_desc = OpDesc('temp_identity_op',
-                    params={'conv': cell_desc.conv_params},
-                    in_len=1, trainables=None, children=None)
-                edge = EdgeDesc(op_desc, index=0, input_ids=[i-1])
-                cell_desc.nodes[i].edges.append(edge)
-
         # for each search iteration i, we will operate on node i
-        node = cell_desc.nodes[search_iteration]
+        node = cell_desc.nodes()[search_iteration]
 
         # At each iteration i we pick the node i and add petridish op to it
         # NOTE: Where is it enforced that the cell already has 1 node. How is that node created?

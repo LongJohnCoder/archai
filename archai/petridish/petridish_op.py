@@ -220,7 +220,7 @@ class PetridishFinalOp(Op):
 
         # number of channels as we will concate output of ops
         ch_out_sum = conv_params.ch_out * len(self._ins)
-        ch_adj_desc =  OpDesc('channel_adjust',
+        ch_adj_desc =  OpDesc('proj_channels',
             { 'conv': ConvMacroParams(ch_out_sum, conv_params.ch_out)},
             in_len=1, trainables=None, children=None)
         self._ch_adj = Op.create(ch_adj_desc, affine=affine)

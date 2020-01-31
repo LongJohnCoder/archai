@@ -6,13 +6,12 @@ __include__: 'darts_cifar.yaml' # defaults are loaded from this file
 nas:
   eval:
     model_desc:
-      n_cells: 14
-    loader:
-      batch: 64
+      cell_post_op: 'proj_channels'
   search:
     iterations: 4
     model_desc:
-      n_nodes: 1
-      cell_post_op: 'channel_adjust'
+      cell_post_op: 'proj_channels'
+    loader:
+      val_ratio: 0.0 #split portion for test set, 0 to 1
     trainer:
       l1_alphas:  0.001   # as per paper

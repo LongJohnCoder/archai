@@ -123,3 +123,33 @@ Darts Model
         concate channels for all nodes
     AdaptiveAvgPool
     Linear
+
+
+## Petridish
+
+### Cell Search
+
+#### Constraints
+
+- Every cell of same type must have same number of nodes and ops
+- Channels for each cell output remain same iteration over iteration
+    - Otherwise, if cell A has different channels then next cells must be
+        rebuilt from scratch (i.e. cannot warm start from previous iteration)
+    - This implies we must use concate nodes + proj at cell o/p as well
+        - this is because we will change number of nodes
+        - other option is to use sum of all node outputs
+- We can insert new regular cell within each cut but we cannot insert
+    new reduction cell because that would change the number of channels
+- model starts and ends with regular cells
+
+#### Algo
+
+reduction_cells = 2 or 3
+max_reg_cells = k st k >= 1
+
+For given model:
+    - Fork 1: add new regular cell in each cur with same number of nodes
+    - Fork 2: add new node in all regular cells
+    - Fork 3: add new node in all reduction cells
+
+

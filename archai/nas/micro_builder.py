@@ -8,5 +8,7 @@ class MicroBuilder(ABC, EnforceOverrides):
     def register_ops(self)->None:
         pass
     def build(self, model_desc:ModelDesc, search_iteration:int)->None:
-        pass
+        pass # prepare model for the given search iteration
+    def seed(self, model_desc:ModelDesc)->None:
+        pass # prepare model as seed model
 

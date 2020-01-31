@@ -61,7 +61,7 @@ class Model(nn.Module):
             'params': utils.param_size(self),
             'alphas_p': len(list(a for a in self.alphas())),
             'alphas': np.sum(a.numel() for a in self.alphas()),
-            'ops': np.sum(len(n.edges) for c in self.desc.cell_descs for n in c.nodes),
+            'ops': np.sum(len(n.edges) for c in self.desc.cell_descs for n in c.nodes()),
         }
 
     def alphas(self)->Iterable[nn.Parameter]:

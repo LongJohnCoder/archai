@@ -85,8 +85,8 @@ class CellType(Enum):
 
 class CellDesc:
     def __init__(self, cell_type:CellType, index:int, nodes:List[NodeDesc],
-            s0_op:OpDesc, s1_op:OpDesc, out_nodes:int, node_ch_out:int,
-            alphas_from:int, max_final_edges:int, cell_post_op:str)->None:
+            s0_op:OpDesc, s1_op:OpDesc, alphas_from:int, max_final_edges:int,
+            out_nodes:int, node_ch_out:int, cell_post_op:str)->None:
         assert s0_op.params['conv'].ch_out == s1_op.params['conv'].ch_out
         assert s0_op.params['conv'].ch_out == node_ch_out
         assert out_nodes <= len(nodes) and out_nodes > 0
@@ -96,19 +96,43 @@ class CellDesc:
         self.s0_op, self.s1_op = s0_op, s1_op
         self.alphas_from = alphas_from # cell index with which we share alphas
         self.max_final_edges = max_final_edges
-        self.cell_post_op = cell_post_op
 
-        self.nodes = nodes
+        self.cell_ch_out = -1 # will be set by reset_nodes
+        self.reset_nodes(nodes, out_nodes, node_ch_out, cell_post_op)
+        assert self.cell_ch_out > 0
 
+    def reset_nodes(self, nodes:List[NodeDesc], out_nodes:int, node_ch_out:int,
+                    cell_post_op:str)->None:
+        self._nodes = nodes
         self.out_nodes = out_nodes
         self.node_ch_out = node_ch_out
-        self.cell_ch_out = out_nodes * node_ch_out
+        self.cell_post_op = cell_post_op
+
+        if cell_post_op == 'concate_channels':
+            new_ch_out = out_nodes * node_ch_out
+        elif cell_post_op == 'proj_channels':
+            new_ch_out = node_ch_out
+        else:
+            raise RuntimeError(f'Unsupported cell_post_op: {cell_post_op}')
+
+        if self.cell_ch_out > -1 and self.cell_ch_out != new_ch_out:
+            raise RuntimeError('Output channel of a cell cannot be resetted'
+                               ' because this requires that all subsequent cells'
+                               ' change to and model should be reconstructed.'
+                               f' new_ch_out={new_ch_out},'
+                               f' self.cell_ch_out={self.cell_ch_out}')
+
+        self.cell_ch_out = new_ch_out
+        # conv parameters for each node
         self.conv_params = ConvMacroParams(node_ch_out, node_ch_out)
 
+    def nodes(self)->List[NodeDesc]:
+        return self._nodes
+
     def all_empty(self)->bool:
-        return len(self.nodes)==0 or all((len(n.edges)==0 for n in self.nodes))
+        return len(self._nodes)==0 or all((len(n.edges)==0 for n in self._nodes))
     def all_full(self)->bool:
-        return len(self.nodes)>0 and all((len(n.edges)>0 for n in self.nodes))
+        return len(self._nodes)>0 and all((len(n.edges)>0 for n in self._nodes))
 
 
 class ModelDesc:
@@ -136,7 +160,7 @@ class ModelDesc:
         state_dict = {}
         for ci, cell_desc in enumerate(self.cell_descs):
             sd_cell = state_dict[ci] = {}
-            for ni, node in enumerate(cell_desc.nodes):
+            for ni, node in enumerate(cell_desc.nodes()):
                 sd_node = sd_cell[ni] = {}
                 for ei, edge_desc in enumerate(node.edges):
                     sd_node[ei] = edge_desc.op_desc.state_dict()
@@ -147,7 +171,7 @@ class ModelDesc:
     def load_state_dict(self, state_dict:dict)->None:
         for ci, cell_desc in enumerate(self.cell_descs):
             sd_cell = state_dict[ci]
-            for ni, node in enumerate(cell_desc.nodes):
+            for ni, node in enumerate(cell_desc.nodes()):
                 sd_node = sd_cell[ni]
                 for ei, edge_desc in enumerate(node.edges):
                     edge_desc.op_desc.load_state_dict(sd_node[ei])

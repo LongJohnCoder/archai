@@ -47,7 +47,7 @@ nas:
       aux_weight: &eval_aux_weight 0.4 # weight for loss from auxiliary towers in test time arch
       dataset: *dataset
       max_final_edges: 2 # max edge that can be in final arch per node
-      cell_post_op: 'identity'
+      cell_post_op: 'concate_channels'
       model_stem0_op: 'stem_cifar'
       model_stem1_op: 'stem_cifar'
       model_post_op: 'pool_cifar'
@@ -58,7 +58,7 @@ nas:
       train_batch: 96
       train_workers: null # if null then gpu_count*4
       load_test: True # load test split of dataset
-      test_batch: 4096
+      test_batch: 2048
       test_workers: null # if null then gpu_count*4
       val_ratio: 0.0 #split portion for test set, 0 to 1
       val_fold: 0 #Fold number to use (0 to 4)
@@ -119,7 +119,7 @@ nas:
       train_batch: 64
       train_workers: null # if null then gpu_count*4
       load_test: False # load test split of dataset
-      test_batch: 4096
+      test_batch: 2048
       test_workers: null # if null then gpu_count*4
       val_ratio: 0.5 #split portion for test set, 0 to 1
       val_fold: 0 #Fold number to use (0 to 4)
@@ -175,7 +175,7 @@ autoaug:
     train_batch: 64
     train_workers: null # if null then gpu_count*4
     load_test: True # load test split of dataset
-    test_batch: 4096
+    test_batch: 2048
     test_workers: null # if null then gpu_count*4
     val_ratio: 0.4 #split portion for test set, 0 to 1
     val_fold: 0 #Fold number to use (0 to 4)

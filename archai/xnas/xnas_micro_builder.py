@@ -22,7 +22,7 @@ class XnasMicroBuilder(MicroBuilder):
         reduction = (cell_desc.cell_type==CellType.Reduction)
 
         # add xnas op for each edge
-        for i, node in enumerate(cell_desc.nodes):
+        for i, node in enumerate(cell_desc.nodes()):
             for j in range(i+2):
                 op_desc = OpDesc('xnas_op',
                                     params={

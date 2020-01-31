@@ -52,11 +52,11 @@ def draw_cell_desc(cell_desc:CellDesc, file_path:str=None, caption:str=None,
     g.node("c_{k-1}", fillcolor='darkseagreen2')
 
     # intermediate nodes
-    n_nodes = len(cell_desc.nodes)
+    n_nodes = len(cell_desc.nodes())
     for i in range(n_nodes):
         g.node(str(i), fillcolor='lightblue')
 
-    for i, node in enumerate(cell_desc.nodes):
+    for i, node in enumerate(cell_desc.nodes()):
         for edge in node.edges:
             op, js = edge.op_desc.name, edge.input_ids
             for j in js:

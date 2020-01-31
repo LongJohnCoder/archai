@@ -95,9 +95,10 @@ class MacroBuilder(EnforceOverrides):
                 cell_type=cell_type, index=ci,
                 nodes=nodes,
                 s0_op=s0_op, s1_op=s1_op,
-                out_nodes=self.out_nodes, node_ch_out=ch_out,
                 alphas_from=alphas_from,
-                max_final_edges=max_final_edges, cell_post_op=self.cell_post_op
+                max_final_edges=max_final_edges,
+                out_nodes=self.out_nodes, node_ch_out=ch_out,
+                cell_post_op=self.cell_post_op
             ))
             # add any nodes from the template to the just added cell
             self._add_template_nodes(cell_descs[-1])
@@ -125,13 +126,10 @@ class MacroBuilder(EnforceOverrides):
         if cell_template is None:
             return
 
-        if len(cell_desc.nodes) > len(cell_template.nodes):
-            logger.warn('cell nodes trimmed from {} to {} when applying template'.format(
-                len(cell_desc.nodes), len(cell_template.nodes)))
-            cell_desc.nodes = cell_desc.nodes[:len(cell_template.nodes)]
+        assert len(cell_desc.nodes()) == len(cell_template.nodes())
 
         # copy each template node to cell
-        for node, template_node in zip(cell_desc.nodes, cell_template.nodes):
+        for node, template_node in zip(cell_desc.nodes(), cell_template.nodes()):
             edges_copy = deepcopy(template_node.edges)
             nl = len(node.edges)
             for ei, ec in enumerate(edges_copy):
@@ -142,6 +140,10 @@ class MacroBuilder(EnforceOverrides):
             node.edges.extend(edges_copy)
 
     def _is_reduction(self, cell_index:int)->bool:
+        # For darts, n_cells=8 so we build [N N R N N R N N] structure
+        # Notice that this will result in only 2 reduction cells no matter
+        # total number of cells. Original resnet actually have 3 reduction cells.
+        # Between two reduction cells we have regular cells.
         return cell_index in [self.n_cells//3, 2*self.n_cells//3]
 
     def _get_cell_stems(self, ch_out: int, p_ch_out: int, pp_ch_out:int,
